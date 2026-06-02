@@ -24,7 +24,8 @@ interface Commercant {
   nom_entreprise: string;
   telephone: string;
   ville: string;
-  compte_operateurs: CompteOperateur[];
+  compte_operateurs?: CompteOperateur[];
+  compteOperateurs?: CompteOperateur[];
 }
 
 interface NotificationItem {
@@ -210,7 +211,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
   const initials   = commercant ? getInitials(commercant.nom, commercant.prenom) : "??";
   const nomComplet = commercant ? `${commercant.prenom} ${commercant.nom}` : "Chargement...";
   const commerce   = commercant ? `${commercant.nom_entreprise} · ${commercant.ville}` : "";
-  const comptes    = commercant?.compte_operateurs ?? [];
+  const comptes    = commercant?.compte_operateurs ?? commercant?.compteOperateurs ?? [];
   const latestNotifications = notifications.length > 0 ? notifications : [];
 
   function notificationMessage(notification: NotificationItem): string {
@@ -378,4 +379,3 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
     </div>
   );
 }
-

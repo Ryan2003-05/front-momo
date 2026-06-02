@@ -126,7 +126,8 @@ export default function ProfilePage() {
           setMemberSince(d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }));
         }
 
-        const comptesData: AccountInfo[] = (c.compte_operateurs ?? []).map((co: {
+        const compteOperateurs = c.compte_operateurs ?? c.compteOperateurs ?? [];
+        const comptesData: AccountInfo[] = compteOperateurs.map((co: {
           id: string; numero: string; actif: boolean;
           operateur: { nom: string };
         }) => ({
