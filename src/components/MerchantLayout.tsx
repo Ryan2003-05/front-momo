@@ -127,6 +127,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const lastNotificationIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -139,6 +140,8 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
         setCommercant(response.data.commercant);
       } catch (err) {
         console.log("ERREUR PROFIL =", err);
+      } finally {
+        setProfileLoaded(true);
       }
     };
     fetchProfil();
@@ -361,7 +364,9 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
                   {opLabels[c.operateur.nom] ?? c.operateur.nom}
                 </span>
               )) : (
-                <span className="text-[10px] text-gray-400">Chargement...</span>
+                <span className="text-[10px] text-gray-400">
+                  {profileLoaded ? "Aucun compte opérateur" : "Chargement..."}
+                </span>
               )}
             </div>
           </div>

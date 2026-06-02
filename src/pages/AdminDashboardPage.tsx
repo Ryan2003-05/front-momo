@@ -109,6 +109,7 @@ export default function AdminDashboardPage() {
   const [data, setData]       = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -119,11 +120,18 @@ export default function AdminDashboardPage() {
 
     const fetchDashboard = async () => {
       setLoading(true);
+      setErrorMessage("");
       try {
+        console.log("ADMIN TOKEN =", localStorage.getItem("token"));
+
         const response = await api.get<AdminDashboardData>("/admin/dashboard");
+
+        console.log("ADMIN DASHBOARD RESPONSE =", response.data);
+
         setData(response.data);
-      } catch {
-        // token expiré → intercepteur redirige vers /login
+      } catch (error) {
+        console.error("ADMIN DASHBOARD ERROR =", error);
+        setErrorMessage("Impossible de charger le tableau de bord admin.");
       } finally {
         setLoading(false);
       }
@@ -232,6 +240,12 @@ export default function AdminDashboardPage() {
         {loading ? (
           <div className="flex flex-1 items-center justify-center">
             <p className="text-sm text-gray-400">Chargement du tableau de bord...</p>
+          </div>
+        ) : errorMessage ? (
+          <div className="flex flex-1 items-center justify-center">
+            <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {errorMessage}
+            </p>
           </div>
         ) : (
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
