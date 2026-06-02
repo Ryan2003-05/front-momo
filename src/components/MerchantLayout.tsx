@@ -135,7 +135,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
       try {
         const response = await api.get("/commercant/profil");
 
-        console.log("PROFIL =", response.data);
+        console.log("Commercant =", response.data);
 
         setCommercant(response.data.commercant);
       } catch (err) {
