@@ -132,9 +132,12 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
     const fetchProfil = async () => {
       try {
         const response = await api.get("/commercant/profil");
+
+        console.log("PROFIL =", response.data);
+
         setCommercant(response.data.commercant);
-      } catch {
-        // Token expiré — l'intercepteur dans api.ts redirige vers /login
+      } catch (err) {
+        console.log("ERREUR PROFIL =", err);
       }
     };
     fetchProfil();
@@ -146,6 +149,9 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
     const fetchNotifications = async () => {
       try {
         const response = await api.get("/notifications");
+
+        console.log("NOTIFICATIONS =", response.data);
+
         if (cancelled) return;
 
         const list: NotificationItem[] = response.data.notifications?.data ?? [];
@@ -164,8 +170,8 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
           lastNotificationIdRef.current = latest.id;
           setToastMessage(notificationMessage(latest));
         }
-      } catch {
-        // La navigation globale gere deja l'expiration du token.
+      } catch (err) {
+        console.log("ERREUR NOTIFICATIONS =", err);
       }
     };
 
