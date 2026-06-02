@@ -1,0 +1,312 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.db{display:flex;min-height:750px;font-family:var(--font-sans);background:var(--color-background-tertiary);}
+
+.sidebar{width:220px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:1.1rem 1rem;border-bottom:0.5px solid var(--color-border-tertiary);}
+.sb-logo-box{width:26px;height:26px;background:#16a34a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:500;}
+.sb-logo-name{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:1rem 0.75rem;flex:1;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-secondary);}
+.sb-item:hover{background:var(--color-background-secondary);}
+.sb-item.active{background:#f0fdf4;color:#15803d;font-weight:500;}
+.sb-icon{width:15px;height:15px;flex-shrink:0;}
+.sb-footer{padding:0.75rem;border-top:0.5px solid var(--color-border-tertiary);}
+.sb-merchant{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#15803d;flex-shrink:0;}
+.sb-commerce{font-size:12px;font-weight:500;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-phone{font-size:11px;color:var(--color-text-tertiary);}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-danger);margin-top:2px;}
+.sb-logout:hover{background:var(--color-background-danger);}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.25rem;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);}
+.back-link{font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.btn-new{display:flex;align-items:center;gap:5px;background:#16a34a;color:#fff;border:none;padding:6px 12px;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer;}
+.notif-btn{width:30px;height:30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--color-background-primary);}
+.notif-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;background:#ef4444;border-radius:50%;}
+
+.profile-banner{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:0.875rem 1.25rem;display:flex;align-items:center;gap:12px;}
+.profile-avatar-lg{width:44px;height:44px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#15803d;flex-shrink:0;border:2px solid #bbf7d0;}
+.profile-details{flex:1;}
+.profile-name{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.profile-shop{font-size:12px;color:var(--color-text-secondary);}
+.profile-ops{display:flex;gap:5px;margin-top:4px;}
+.op-pill{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.op-mtn{background:#fef3c7;color:#92400e;}
+.op-moov{background:#dbeafe;color:#1e40af;}
+.op-celtis{background:#ede9fe;color:#5b21b6;}
+.profile-right{display:flex;align-items:center;gap:8px;}
+.status-online{display:flex;align-items:center;gap:5px;font-size:11px;color:#15803d;background:#f0fdf4;padding:4px 10px;border-radius:10px;border:0.5px solid #bbf7d0;}
+.status-dot{width:6px;height:6px;background:#16a34a;border-radius:50%;}
+
+.content{flex:1;overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.875rem;}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.stat-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:0.875rem;}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px;}
+.stat-value{font-size:20px;font-weight:500;color:var(--color-text-primary);}
+.stat-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:10px;margin-top:4px;}
+.badge-s{background:#dcfce7;color:#15803d;}
+.badge-d{background:#fee2e2;color:#b91c1c;}
+.badge-n{background:var(--color-background-secondary);color:var(--color-text-secondary);}
+.solde-hide{font-size:20px;letter-spacing:3px;color:var(--color-text-tertiary);}
+.eye-btn{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-tertiary);cursor:pointer;margin-top:4px;background:none;border:none;padding:0;}
+
+.alert-bar{background:#fefce8;border:0.5px solid #fde68a;border-radius:var(--border-radius-md);padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#854d0e;}
+.alert-icon{width:14px;height:14px;flex-shrink:0;}
+
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:8px;}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:0.875rem;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+.card-link{font-size:11px;color:#16a34a;cursor:pointer;}
+.legend{display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary);}
+.leg-dot{width:8px;height:8px;border-radius:2px;}
+
+.txn-list{display:flex;flex-direction:column;gap:5px;}
+.txn-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);}
+.txn-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:500;}
+.txn-icon.s{background:#dcfce7;color:#15803d;}
+.txn-icon.f{background:#fee2e2;color:#b91c1c;}
+.txn-icon.p{background:#fef9c3;color:#854d0e;}
+.txn-info{flex:1;min-width:0;}
+.txn-name{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.txn-meta{font-size:11px;color:var(--color-text-tertiary);}
+.txn-amount{font-size:13px;font-weight:500;color:var(--color-text-primary);text-align:right;white-space:nowrap;}
+.txn-status{font-size:10px;padding:1px 6px;border-radius:10px;font-weight:500;white-space:nowrap;}
+.ts{background:#dcfce7;color:#15803d;}
+.tf{background:#fee2e2;color:#b91c1c;}
+.tp{background:#fef9c3;color:#854d0e;}
+</style>
+
+<div class="db">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box">P</div>
+      <span class="sb-logo-name">PayPME</span>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-item active">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Tableau de bord
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Nouveau paiement
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Historique
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Mon profil
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-merchant">
+        <div class="sb-avatar">AK</div>
+        <div>
+          <div class="sb-commerce">Épicerie Kouassi</div>
+          <div class="sb-phone">+229 97 00 00 00</div>
+        </div>
+      </div>
+      <div class="sb-logout">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Navbar -->
+    <div class="topbar">
+      <div class="back-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Retour à l'accueil
+      </div>
+      <div class="topbar-right">
+        <div class="notif-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot"></div>
+        </div>
+        <button class="btn-new">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouveau paiement
+        </button>
+      </div>
+    </div>
+
+    <!-- Profil banner sous navbar -->
+    <div class="profile-banner">
+      <div class="profile-avatar-lg">AK</div>
+      <div class="profile-details">
+        <div class="profile-name">Aïssatou Kouassi</div>
+        <div class="profile-shop">Épicerie Kouassi · Cotonou</div>
+        <div class="profile-ops">
+          <span class="op-pill op-mtn">MTN MoMo</span>
+          <span class="op-pill op-moov">Moov Money</span>
+          <span class="op-pill op-celtis">Celtis</span>
+        </div>
+      </div>
+      <div class="profile-right">
+        <div class="status-online"><div class="status-dot"></div> En ligne</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Alerte utile -->
+      <div class="alert-bar">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        3 transactions en attente depuis plus de 10 min — <span style="font-weight:500;cursor:pointer;text-decoration:underline;margin-left:4px;">Voir</span>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Solde total</div>
+          <div class="solde-hide" id="solde-val">••••••</div>
+          <button class="eye-btn" id="eye-btn" onclick="toggleSolde()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Afficher
+          </button>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Transactions aujourd'hui</div>
+          <div class="stat-value">24</div>
+          <div class="stat-badge badge-s">+8 vs hier</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Réussies</div>
+          <div class="stat-value" style="color:#15803d;">21</div>
+          <div class="stat-badge badge-s">87.5 %</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Échouées</div>
+          <div class="stat-value" style="color:#b91c1c;">3</div>
+          <div class="stat-badge badge-d">12.5 %</div>
+        </div>
+      </div>
+
+      <!-- Graphiques -->
+      <div class="charts-row">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Transactions — 7 derniers jours</div>
+          </div>
+          <div class="legend">
+            <div class="leg-item"><div class="leg-dot" style="background:#16a34a;"></div> Réussies</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#ef4444;"></div> Échouées</div>
+          </div>
+          <div style="position:relative;width:100%;height:160px;">
+            <canvas id="chart7j" role="img" aria-label="Transactions des 7 derniers jours">Données sur 7 jours.</canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Par opérateur</div>
+          </div>
+          <div style="position:relative;width:100%;height:120px;">
+            <canvas id="chartOp" role="img" aria-label="Répartition par opérateur">MTN, Moov, Celtis.</canvas>
+          </div>
+          <div class="legend" style="margin-top:8px;">
+            <div class="leg-item"><div class="leg-dot" style="background:#f59e0b;"></div> MTN 58%</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#2563eb;"></div> Moov 30%</div>
+            <div class="leg-item"><div class="leg-dot" style="background:#7c3aed;"></div> Celtis 12%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transactions récentes -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Transactions récentes</div>
+          <span class="card-link">Voir tout</span>
+        </div>
+        <div class="txn-list">
+          <div class="txn-row">
+            <div class="txn-icon s">MT</div>
+            <div class="txn-info"><div class="txn-name">Paiement MTN MoMo</div><div class="txn-meta">+229 97 12 34 56 · il y a 5 min · QR code</div></div>
+            <div style="text-align:right"><div class="txn-amount">+2 500 F</div><div class="txn-status ts">Succès</div></div>
+          </div>
+          <div class="txn-row">
+            <div class="txn-icon f">MV</div>
+            <div class="txn-info"><div class="txn-name">Paiement Moov Money</div><div class="txn-meta">+229 96 98 76 54 · il y a 18 min · Lien</div></div>
+            <div style="text-align:right"><div class="txn-amount">+1 000 F</div><div class="txn-status tf">Échec</div></div>
+          </div>
+          <div class="txn-row">
+            <div class="txn-icon s">MT</div>
+            <div class="txn-info"><div class="txn-name">Paiement MTN MoMo</div><div class="txn-meta">+229 97 45 67 89 · il y a 34 min · QR code</div></div>
+            <div style="text-align:right"><div class="txn-amount">+5 000 F</div><div class="txn-status ts">Succès</div></div>
+          </div>
+          <div class="txn-row">
+            <div class="txn-icon p">CL</div>
+            <div class="txn-info"><div class="txn-name">Paiement Celtis</div><div class="txn-meta">+229 95 11 22 33 · il y a 1h · USSD</div></div>
+            <div style="text-align:right"><div class="txn-amount">+750 F</div><div class="txn-status tp">En attente</div></div>
+          </div>
+          <div class="txn-row">
+            <div class="txn-icon s">MT</div>
+            <div class="txn-info"><div class="txn-name">Paiement MTN MoMo</div><div class="txn-meta">+229 97 77 88 99 · il y a 2h · QR code</div></div>
+            <div style="text-align:right"><div class="txn-amount">+3 200 F</div><div class="txn-status ts">Succès</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let soldeVisible = false;
+function toggleSolde() {
+  soldeVisible = !soldeVisible;
+  const val = document.getElementById('solde-val');
+  const btn = document.getElementById('eye-btn');
+  val.style.fontSize = soldeVisible ? '20px' : '';
+  val.style.letterSpacing = soldeVisible ? 'normal' : '';
+  val.style.color = soldeVisible ? 'var(--color-text-primary)' : '';
+  val.textContent = soldeVisible ? '127 450 F' : '••••••';
+  btn.innerHTML = soldeVisible
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Masquer'
+    : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Afficher';
+}
+
+new Chart(document.getElementById('chart7j'), {
+  type: 'bar',
+  data: {
+    labels: ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],
+    datasets: [
+      { label:'Réussies', data:[18,22,15,28,21,30,21], backgroundColor:'#16a34a', borderRadius:3 },
+      { label:'Échouées', data:[2,3,1,4,2,3,3], backgroundColor:'#ef4444', borderRadius:3 }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ grid:{ display:false }, ticks:{ font:{ size:10 } } },
+      y:{ grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ font:{ size:10 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chartOp'), {
+  type:'doughnut',
+  data:{
+    labels:['MTN MoMo','Moov Money','Celtis'],
+    datasets:[{ data:[58,30,12], backgroundColor:['#f59e0b','#2563eb','#7c3aed'], borderWidth:0 }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false } },
+    cutout:'65%'
+  }
+});
+</script>

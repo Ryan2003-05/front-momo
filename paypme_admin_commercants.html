@@ -1,0 +1,368 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.db{display:flex;min-height:780px;font-family:var(--font-sans);background:var(--color-background-tertiary);}
+.sidebar{width:210px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:1rem;border-bottom:0.5px solid var(--color-border-tertiary);}
+.sb-logo-box{width:26px;height:26px;background:#1e3a5f;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:500;}
+.sb-logo-name{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:1rem 0.75rem;flex:1;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-secondary);}
+.sb-item:hover{background:var(--color-background-secondary);}
+.sb-item.active{background:#eff6ff;color:#1e3a5f;font-weight:500;}
+.sb-icon{width:15px;height:15px;flex-shrink:0;}
+.sb-sep{padding:8px 10px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-top:6px;}
+.sb-badge{font-size:9px;background:#fee2e2;color:#b91c1c;padding:2px 6px;border-radius:8px;font-weight:500;margin-left:auto;}
+.sb-footer{padding:0.75rem;border-top:0.5px solid var(--color-border-tertiary);}
+.sb-admin{display:flex;align-items:center;gap:8px;padding:8px 10px;}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#1e3a5f;}
+.sb-name{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.sb-role{font-size:11px;color:var(--color-text-tertiary);}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-danger);margin-top:2px;}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.25rem;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);}
+.topbar-title{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.notif-btn{width:30px;height:30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--color-background-primary);}
+.notif-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;background:#ef4444;border-radius:50%;}
+.admin-chip{display:flex;align-items:center;gap:8px;padding:5px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);}
+.admin-avatar{width:24px;height:24px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#1e3a5f;}
+.admin-name{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.admin-role-badge{font-size:10px;background:#eff6ff;color:#1e3a5f;padding:2px 6px;border-radius:8px;border:0.5px solid #bfdbfe;}
+
+.content{flex:1;overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.875rem;}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.stat-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:0.875rem;}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px;}
+.stat-value{font-size:22px;font-weight:500;color:var(--color-text-primary);}
+.stat-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:10px;margin-top:4px;}
+.bs{background:#dcfce7;color:#15803d;}
+.bd{background:#fee2e2;color:#b91c1c;}
+.bw{background:#fef9c3;color:#854d0e;}
+.bn{background:var(--color-background-secondary);color:var(--color-text-secondary);}
+
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;}
+
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:180px;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--color-text-tertiary);}
+.search-input{width:100%;height:34px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:0 10px 0 32px;font-size:13px;color:var(--color-text-primary);background:var(--color-background-primary);outline:none;}
+.search-input:focus{border-color:#1e3a5f;}
+.filter-select{height:34px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:0 10px;font-size:12px;color:var(--color-text-secondary);background:var(--color-background-primary);outline:none;cursor:pointer;}
+.filter-tabs{display:flex;gap:4px;}
+.filter-tab{height:30px;padding:0 12px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-secondary);}
+.filter-tab.active{background:#eff6ff;color:#1e3a5f;border-color:#bfdbfe;font-weight:500;}
+
+.merchant-table{width:100%;border-collapse:collapse;}
+.merchant-table th{font-size:11px;color:var(--color-text-tertiary);text-align:left;padding:8px 12px;border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:0.4px;font-weight:500;white-space:nowrap;}
+.merchant-table td{font-size:12px;padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle;}
+.merchant-table tr:last-child td{border:none;}
+.merchant-table tr:hover td{background:var(--color-background-secondary);cursor:pointer;}
+
+.m-identity{display:flex;align-items:center;gap:8px;}
+.m-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;}
+.m-name{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+.m-sub{font-size:11px;color:var(--color-text-tertiary);}
+.m-status{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;white-space:nowrap;}
+.st-actif{background:#dcfce7;color:#15803d;}
+.st-attente{background:#fef9c3;color:#854d0e;}
+.st-suspendu{background:#fee2e2;color:#b91c1c;}
+.op-pills{display:flex;gap:3px;flex-wrap:wrap;}
+.op-pill{font-size:9px;padding:2px 5px;border-radius:6px;font-weight:500;}
+.p-mtn{background:#fef3c7;color:#92400e;}
+.p-moov{background:#dbeafe;color:#1e40af;}
+.p-celtis{background:#ede9fe;color:#5b21b6;}
+.actions-cell{display:flex;gap:4px;align-items:center;}
+.btn-action{font-size:10px;padding:4px 8px;border-radius:6px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);white-space:nowrap;}
+.btn-action:hover{background:var(--color-background-secondary);}
+.btn-validate{border-color:#16a34a;color:#15803d;background:#f0fdf4;}
+.btn-suspend{border-color:#ef4444;color:#b91c1c;}
+.btn-view{border-color:#1e3a5f;color:#1e3a5f;background:#eff6ff;}
+
+.detail-panel{position:fixed;top:0;right:0;width:320px;height:100%;background:var(--color-background-primary);border-left:0.5px solid var(--color-border-tertiary);padding:1.25rem;display:none;flex-direction:column;gap:1rem;overflow-y:auto;z-index:100;}
+.detail-panel.open{display:flex;}
+.detail-head{display:flex;align-items:center;justify-content:space-between;}
+.detail-title{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.close-btn{width:26px;height:26px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--color-text-secondary);}
+.detail-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;margin:0 auto;}
+.detail-name{font-size:15px;font-weight:500;color:var(--color-text-primary);text-align:center;}
+.detail-shop{font-size:12px;color:var(--color-text-secondary);text-align:center;}
+.detail-section{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.detail-rows{display:flex;flex-direction:column;gap:6px;}
+.detail-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);}
+.detail-row:last-child{border:none;}
+.detail-key{color:var(--color-text-secondary);}
+.detail-val{font-weight:500;color:var(--color-text-primary);text-align:right;}
+.detail-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.detail-stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px;text-align:center;}
+.ds-label{font-size:10px;color:var(--color-text-tertiary);}
+.ds-val{font-size:16px;font-weight:500;color:var(--color-text-primary);}
+.detail-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto;}
+.btn-full{width:100%;height:36px;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer;border:none;}
+.btn-full-validate{background:#16a34a;color:#fff;}
+.btn-full-suspend{background:#fee2e2;color:#b91c1c;border:0.5px solid #fca5a5;}
+.btn-full-close{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);}
+</style>
+
+<div class="db">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box">P</div>
+      <span class="sb-logo-name">PayPME Admin</span>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sep">Principal</div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Vue d'ensemble
+      </div>
+      <div class="sb-item active">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Commerçants
+        <span class="sb-badge">3</span>
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Transactions
+      </div>
+      <div class="sb-sep">Système</div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Opérateurs
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Logs système
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-admin">
+        <div class="sb-avatar">JA</div>
+        <div>
+          <div class="sb-name">Jean Adjovi</div>
+          <div class="sb-role">Administrateur</div>
+        </div>
+      </div>
+      <div class="sb-logout">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Gestion des commerçants</span>
+      <div class="topbar-right">
+        <div class="notif-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="admin-chip">
+          <div class="admin-avatar">JA</div>
+          <span class="admin-name">Jean Adjovi</span>
+          <span class="admin-role-badge">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total commerçants</div>
+          <div class="stat-value">145</div>
+          <div class="stat-badge bn">inscrits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Actifs</div>
+          <div class="stat-value" style="color:#15803d;">142</div>
+          <div class="stat-badge bs">97,9%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">En attente</div>
+          <div class="stat-value" style="color:#854d0e;">3</div>
+          <div class="stat-badge bw">à valider</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Suspendus</div>
+          <div class="stat-value" style="color:#b91c1c;">2</div>
+          <div class="stat-badge bd">activité suspecte</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" placeholder="Rechercher par nom, commerce, ville..." id="search-input" oninput="filterTable()">
+          </div>
+          <select class="filter-select" id="filter-ville" onchange="filterTable()">
+            <option value="">Toutes les villes</option>
+            <option>Cotonou</option>
+            <option>Porto-Novo</option>
+            <option>Parakou</option>
+            <option>Abomey-Calavi</option>
+          </select>
+          <select class="filter-select" id="filter-op" onchange="filterTable()">
+            <option value="">Tous les opérateurs</option>
+            <option>MTN</option>
+            <option>Moov</option>
+            <option>Celtis</option>
+          </select>
+          <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterStatus('tous',this)">Tous</button>
+            <button class="filter-tab" onclick="filterStatus('actif',this)">Actifs</button>
+            <button class="filter-tab" onclick="filterStatus('attente',this)">En attente</button>
+            <button class="filter-tab" onclick="filterStatus('suspendu',this)">Suspendus</button>
+          </div>
+        </div>
+
+        <table class="merchant-table" id="merchant-table">
+          <thead>
+            <tr>
+              <th>Commerçant</th>
+              <th>Ville</th>
+              <th>Type</th>
+              <th>Opérateurs</th>
+              <th>Transactions</th>
+              <th>Inscrit le</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel détail -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-head">
+      <span class="detail-title">Fiche commerçant</span>
+      <button class="close-btn" onclick="closeDetail()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+const merchants = [
+  { id:1, initials:'AK', color:'#dcfce7', tcolor:'#15803d', name:'Aïssatou Kouassi', shop:'Épicerie Kouassi', ville:'Cotonou', type:'Épicerie', ops:['MTN','Moov','Celtis'], txn:284, date:'12 jan. 2025', status:'actif', phone:'+229 97 00 00 00', email:'ak@gmail.com' },
+  { id:2, initials:'SK', color:'#fef3c7', tcolor:'#92400e', name:'Sékou Kaboré', shop:'Pharmacie Santé', ville:'Parakou', type:'Pharmacie', ops:['MTN','Moov'], txn:0, date:'28 avr. 2025', status:'attente', phone:'+229 96 11 22 33', email:'sk@gmail.com' },
+  { id:3, initials:'FD', color:'#ede9fe', tcolor:'#5b21b6', name:'Fatoumata Diallo', shop:'Salon Beauté Plus', ville:'Cotonou', type:'Beauté', ops:['MTN'], txn:0, date:'29 avr. 2025', status:'attente', phone:'+229 97 44 55 66', email:'fd@gmail.com' },
+  { id:4, initials:'MB', color:'#dbeafe', tcolor:'#1e40af', name:'Marc Bédié', shop:'Coiffure Pro', ville:'Porto-Novo', type:'Beauté', ops:['Moov'], txn:156, date:'05 fév. 2025', status:'actif', phone:'+229 96 77 88 99', email:'mb@gmail.com' },
+  { id:5, initials:'AM', color:'#fce7f3', tcolor:'#9d174d', name:'Alima Mossi', shop:'Mode Africaine', ville:'Abomey-Calavi', type:'Textile', ops:['Celtis'], txn:0, date:'30 avr. 2025', status:'attente', phone:'+229 95 33 44 55', email:'am@gmail.com' },
+  { id:6, initials:'KD', color:'#fee2e2', tcolor:'#b91c1c', name:'Kofi Djangou', shop:'Mode Rapide', ville:'Cotonou', type:'Textile', ops:['MTN','Moov'], txn:42, date:'20 mar. 2025', status:'suspendu', phone:'+229 97 66 77 88', email:'kd@gmail.com' },
+  { id:7, initials:'LB', color:'#dcfce7', tcolor:'#15803d', name:'Léa Bocovo', shop:'Restaurant Saveur', ville:'Cotonou', type:'Restauration', ops:['MTN','Celtis'], txn:318, date:'18 jan. 2025', status:'actif', phone:'+229 97 22 33 44', email:'lb@gmail.com' },
+  { id:8, initials:'RN', color:'#fee2e2', tcolor:'#b91c1c', name:'Roch Nouatin', shop:'Superette Roch', ville:'Porto-Novo', type:'Épicerie', ops:['Moov'], txn:12, date:'15 avr. 2025', status:'suspendu', phone:'+229 96 55 66 77', email:'rn@gmail.com' },
+];
+
+let currentFilter = 'tous';
+
+const statusLabel = { actif:'Actif', attente:'En attente', suspendu:'Suspendu' };
+const statusClass = { actif:'st-actif', attente:'st-attente', suspendu:'st-suspendu' };
+const opClass = { MTN:'p-mtn', Moov:'p-moov', Celtis:'p-celtis' };
+
+function renderTable(data) {
+  const tbody = document.getElementById('table-body');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--color-text-tertiary);font-size:13px;">Aucun commerçant trouvé</td></tr>'; return; }
+  tbody.innerHTML = data.map(m => `
+    <tr onclick="openDetail(${m.id})">
+      <td><div class="m-identity">
+        <div class="m-avatar" style="background:${m.color};color:${m.tcolor};">${m.initials}</div>
+        <div><div class="m-name">${m.name}</div><div class="m-sub">${m.shop}</div></div>
+      </div></td>
+      <td style="color:var(--color-text-secondary);font-size:12px;">${m.ville}</td>
+      <td style="color:var(--color-text-secondary);font-size:12px;">${m.type}</td>
+      <td><div class="op-pills">${m.ops.map(o=>`<span class="op-pill ${opClass[o]}">${o}</span>`).join('')}</div></td>
+      <td style="font-weight:500;">${m.txn}</td>
+      <td style="color:var(--color-text-secondary);font-size:11px;">${m.date}</td>
+      <td><span class="m-status ${statusClass[m.status]}">${statusLabel[m.status]}</span></td>
+      <td onclick="event.stopPropagation()"><div class="actions-cell">
+        ${m.status==='attente' ? `<button class="btn-action btn-validate" onclick="changeStatus(${m.id},'actif')">Valider</button>` : ''}
+        ${m.status==='actif' ? `<button class="btn-action btn-suspend" onclick="changeStatus(${m.id},'suspendu')">Suspendre</button>` : ''}
+        ${m.status==='suspendu' ? `<button class="btn-action btn-validate" onclick="changeStatus(${m.id},'actif')">Réactiver</button>` : ''}
+        <button class="btn-action btn-view" onclick="openDetail(${m.id})">Voir</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const ville = document.getElementById('filter-ville').value;
+  const op = document.getElementById('filter-op').value;
+  let data = merchants.filter(m => {
+    const matchQ = !q || m.name.toLowerCase().includes(q) || m.shop.toLowerCase().includes(q) || m.ville.toLowerCase().includes(q);
+    const matchV = !ville || m.ville === ville;
+    const matchO = !op || m.ops.includes(op);
+    const matchS = currentFilter === 'tous' || m.status === currentFilter;
+    return matchQ && matchV && matchO && matchS;
+  });
+  renderTable(data);
+}
+
+function filterStatus(status, btn) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterTable();
+}
+
+function changeStatus(id, newStatus) {
+  const m = merchants.find(m => m.id === id);
+  if (m) { m.status = newStatus; filterTable(); }
+}
+
+function openDetail(id) {
+  const m = merchants.find(m => m.id === id);
+  if (!m) return;
+  document.getElementById('detail-content').innerHTML = `
+    <div style="text-align:center;">
+      <div class="detail-avatar" style="background:${m.color};color:${m.tcolor};">${m.initials}</div>
+      <div class="detail-name" style="margin-top:8px;">${m.name}</div>
+      <div class="detail-shop">${m.shop}</div>
+      <span class="m-status ${statusClass[m.status]}" style="display:inline-block;margin-top:6px;">${statusLabel[m.status]}</span>
+    </div>
+    <div>
+      <div class="detail-section">Informations personnelles</div>
+      <div class="detail-rows">
+        <div class="detail-row"><span class="detail-key">Téléphone</span><span class="detail-val">${m.phone}</span></div>
+        <div class="detail-row"><span class="detail-key">Email</span><span class="detail-val">${m.email}</span></div>
+        <div class="detail-row"><span class="detail-key">Ville</span><span class="detail-val">${m.ville}</span></div>
+        <div class="detail-row"><span class="detail-key">Type</span><span class="detail-val">${m.type}</span></div>
+        <div class="detail-row"><span class="detail-key">Inscrit le</span><span class="detail-val">${m.date}</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="detail-section">Opérateurs</div>
+      <div class="op-pills" style="gap:5px;">${m.ops.map(o=>`<span class="op-pill ${opClass[o]}" style="font-size:11px;padding:3px 8px;">${o}</span>`).join('')}</div>
+    </div>
+    <div>
+      <div class="detail-section">Statistiques</div>
+      <div class="detail-stats">
+        <div class="detail-stat"><div class="ds-label">Transactions</div><div class="ds-val">${m.txn}</div></div>
+        <div class="detail-stat"><div class="ds-label">Taux succès</div><div class="ds-val" style="color:#15803d;">${m.txn > 0 ? '88%' : '—'}</div></div>
+      </div>
+    </div>
+    <div class="detail-actions">
+      ${m.status==='attente' ? `<button class="btn-full btn-full-validate" onclick="changeStatus(${m.id},'actif');closeDetail()">Valider le compte</button>` : ''}
+      ${m.status==='actif' ? `<button class="btn-full btn-full-suspend" onclick="changeStatus(${m.id},'suspendu');closeDetail()">Suspendre le compte</button>` : ''}
+      ${m.status==='suspendu' ? `<button class="btn-full btn-full-validate" onclick="changeStatus(${m.id},'actif');closeDetail()">Réactiver le compte</button>` : ''}
+      <button class="btn-full btn-full-close" onclick="closeDetail()">Fermer</button>
+    </div>`;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+renderTable(merchants);
+</script>

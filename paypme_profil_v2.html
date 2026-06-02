@@ -1,0 +1,367 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --green:#16a34a;--green-dark:#15803d;--green-light:#f0fdf4;--green-border:#bbf7d0;
+  --blue-dark:#1e3a5f;--blue-mid:#1d4ed8;
+  --amber:#f59e0b;--purple:#7c3aed;
+}
+.db{display:flex;min-height:820px;background:var(--color-background-tertiary);font-family:var(--font-sans);}
+
+.sidebar{width:210px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:1.1rem 1rem;border-bottom:0.5px solid var(--color-border-tertiary);}
+.sb-box{width:28px;height:28px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:500;}
+.sb-name{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:1rem 0.75rem;flex:1;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-secondary);transition:background 0.1s;}
+.sb-item:hover{background:var(--color-background-secondary);}
+.sb-item.active{background:var(--green-light);color:var(--green-dark);font-weight:500;}
+.sb-item.active .sb-icon{stroke:var(--green-dark);}
+.sb-icon{width:15px;height:15px;flex-shrink:0;stroke:currentColor;}
+.sb-footer{padding:0.75rem;border-top:0.5px solid var(--color-border-tertiary);}
+.sb-user{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);}
+.sb-av{width:30px;height:30px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#15803d;flex-shrink:0;}
+.sb-uname{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.sb-uphone{font-size:11px;color:var(--color-text-tertiary);}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-danger);margin-top:2px;}
+.sb-logout:hover{background:var(--color-background-danger);}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.5rem;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);}
+.back{font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.notif{width:30px;height:30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--color-background-primary);}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;background:#ef4444;border-radius:50%;}
+
+.content{flex:1;overflow-y:auto;padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:1rem;}
+
+.profile-hero{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;}
+.hero-banner{height:56px;background:var(--green);}
+.hero-body{padding:0 1.5rem 1.25rem;display:flex;align-items:flex-end;gap:1rem;margin-top:-28px;}
+.avatar-wrap{position:relative;flex-shrink:0;}
+.avatar-lg{width:60px;height:60px;border-radius:50%;background:#dcfce7;border:3px solid var(--color-background-primary);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#15803d;cursor:pointer;}
+.avatar-edit-btn{position:absolute;bottom:2px;right:2px;width:18px;height:18px;background:var(--green);border-radius:50%;border:2px solid var(--color-background-primary);display:flex;align-items:center;justify-content:center;}
+.hero-info{flex:1;padding-bottom:2px;}
+.hero-name{font-size:16px;font-weight:500;color:var(--color-text-primary);line-height:1.3;}
+.hero-shop{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;}
+.hero-pills{display:flex;gap:4px;flex-wrap:wrap;}
+.pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.p-mtn{background:#fef3c7;color:#92400e;}
+.p-moov{background:#dbeafe;color:#1e40af;}
+.p-celtis{background:#ede9fe;color:#5b21b6;}
+.hero-stats{display:flex;gap:1px;margin-left:auto;padding-bottom:4px;}
+.hstat{padding:8px 16px;text-align:center;border-left:0.5px solid var(--color-border-tertiary);}
+.hstat:first-child{border-left:none;}
+.hstat-val{font-size:17px;font-weight:500;color:var(--color-text-primary);}
+.hstat-lbl{font-size:10px;color:var(--color-text-tertiary);margin-top:1px;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:0.5px solid var(--color-border-tertiary);}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+.edit-btn{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--green);cursor:pointer;background:none;border:none;padding:3px 8px;border-radius:var(--border-radius-md);}
+.edit-btn:hover{background:var(--green-light);}
+
+.fgroup{display:flex;flex-direction:column;gap:10px;}
+.field{display:flex;flex-direction:column;gap:3px;}
+.field label{font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;}
+.fval{font-size:13px;color:var(--color-text-primary);padding:7px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);}
+.field input,.field select{height:34px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:0 10px;font-size:13px;color:var(--color-text-primary);background:var(--color-background-primary);outline:none;width:100%;transition:border-color 0.15s;}
+.field input:focus,.field select:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(22,163,74,0.1);}
+.edit-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:8px;}
+.btn-save{height:32px;padding:0 14px;background:var(--green);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer;}
+.btn-save:hover{background:var(--green-dark);}
+.btn-cancel{height:32px;padding:0 12px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;}
+
+.op-list{display:flex;flex-direction:column;gap:6px;}
+.op-card{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;}
+.op-card.active-op{border-color:var(--green-border);}
+.op-header{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--color-background-secondary);}
+.op-logo{width:36px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:500;flex-shrink:0;}
+.op-name-txt{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+.op-badge{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.op-on{background:#dcfce7;color:#15803d;}
+.op-body-row{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-top:0.5px solid var(--color-border-tertiary);}
+.op-num-txt{font-size:12px;color:var(--color-text-secondary);}
+.op-edit-btn{font-size:11px;color:var(--green);background:none;border:none;cursor:pointer;}
+.op-edit-btn:hover{text-decoration:underline;}
+.op-add{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-tertiary);background:none;width:100%;margin-top:2px;}
+.op-add:hover{background:var(--color-background-secondary);}
+
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:36px;}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--color-text-tertiary);background:none;border:none;display:flex;align-items:center;}
+
+.contact-box{background:var(--green-light);border:0.5px solid var(--green-border);border-radius:var(--border-radius-md);padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.contact-icon{width:36px;height:36px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.contact-title{font-size:12px;font-weight:500;color:#15803d;margin-bottom:2px;}
+.contact-desc{font-size:11px;color:#166534;line-height:1.5;}
+.contact-btn{margin-left:auto;height:30px;padding:0 12px;background:var(--green);color:#fff;border:none;border-radius:var(--border-radius-md);font-size:11px;font-weight:500;cursor:pointer;flex-shrink:0;}
+
+.toast-bar{position:absolute;bottom:20px;right:20px;background:#0f172a;color:#f0fdf4;padding:9px 14px;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;display:none;align-items:center;gap:6px;z-index:999;border-left:3px solid var(--green);}
+.toast-bar.show{display:flex;}
+</style>
+
+<div class="db">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-box">P</div>
+      <span class="sb-name">PayPME</span>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Tableau de bord
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Nouveau paiement
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Historique
+      </div>
+      <div class="sb-item active">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Mon profil
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-av">AK</div>
+        <div>
+          <div class="sb-uname">Épicerie Kouassi</div>
+          <div class="sb-uphone">+229 97 00 00 00</div>
+        </div>
+      </div>
+      <div class="sb-logout">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </div>
+
+  <div class="main" style="position:relative;">
+    <div class="topbar">
+      <div class="back">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Retour à l'accueil
+      </div>
+      <div class="notif">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="profile-hero">
+        <div class="hero-banner"></div>
+        <div class="hero-body">
+          <div class="avatar-wrap">
+            <div class="avatar-lg" onclick="toast('Photo de profil mise à jour')">AK
+              <div class="avatar-edit-btn">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="hero-info">
+            <div class="hero-name">Aïssatou Kouassi</div>
+            <div class="hero-shop">Épicerie Kouassi · Cotonou · Membre depuis jan. 2025</div>
+            <div class="hero-pills">
+              <span class="pill p-mtn">MTN MoMo</span>
+              <span class="pill p-moov">Moov Money</span>
+              <span class="pill p-celtis">Celtis</span>
+            </div>
+          </div>
+          <div class="hero-stats">
+            <div class="hstat">
+              <div class="hstat-val">284</div>
+              <div class="hstat-lbl">Transactions</div>
+            </div>
+            <div class="hstat">
+              <div class="hstat-val" style="color:#15803d;">88%</div>
+              <div class="hstat-lbl">Taux succès</div>
+            </div>
+            <div class="hstat">
+              <div class="hstat-val" style="font-size:14px;">127k F</div>
+              <div class="hstat-lbl">Volume total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Informations personnelles</div>
+            <button class="edit-btn" onclick="toggle('perso')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+              Modifier
+            </button>
+          </div>
+          <div class="fgroup" id="perso-view">
+            <div class="field"><label>Prénom</label><div class="fval">Aïssatou</div></div>
+            <div class="field"><label>Nom</label><div class="fval">Kouassi</div></div>
+            <div class="field"><label>Téléphone</label><div class="fval">+229 97 00 00 00</div></div>
+            <div class="field"><label>Email</label><div class="fval">ak@gmail.com</div></div>
+          </div>
+          <div class="fgroup" id="perso-edit" style="display:none;">
+            <div class="field"><label>Prénom</label><input value="Aïssatou"></div>
+            <div class="field"><label>Nom</label><input value="Kouassi"></div>
+            <div class="field"><label>Téléphone</label><input value="+229 97 00 00 00"></div>
+            <div class="field"><label>Email</label><input value="ak@gmail.com"></div>
+            <div class="edit-actions">
+              <button class="btn-cancel" onclick="toggle('perso')">Annuler</button>
+              <button class="btn-save" onclick="save('perso')">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Informations du commerce</div>
+            <button class="edit-btn" onclick="toggle('commerce')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+              Modifier
+            </button>
+          </div>
+          <div class="fgroup" id="commerce-view">
+            <div class="field"><label>Nom du commerce</label><div class="fval">Épicerie Kouassi</div></div>
+            <div class="field"><label>Type de commerce</label><div class="fval">Épicerie / Alimentation</div></div>
+            <div class="field"><label>Ville</label><div class="fval">Cotonou</div></div>
+            <div class="field"><label>IFU</label><div class="fval">BJ-2024-00123456</div></div>
+          </div>
+          <div class="fgroup" id="commerce-edit" style="display:none;">
+            <div class="field"><label>Nom du commerce</label><input value="Épicerie Kouassi"></div>
+            <div class="field"><label>Type de commerce</label>
+              <select><option>Épicerie / Alimentation</option><option>Restauration</option><option>Beauté</option><option>Pharmacie</option></select>
+            </div>
+            <div class="field"><label>Ville</label>
+              <select><option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option><option>Abomey-Calavi</option></select>
+            </div>
+            <div class="field"><label>IFU</label><input value="BJ-2024-00123456"></div>
+            <div class="edit-actions">
+              <button class="btn-cancel" onclick="toggle('commerce')">Annuler</button>
+              <button class="btn-save" onclick="save('commerce')">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Comptes mobile money</div>
+            <span style="font-size:11px;color:var(--color-text-tertiary);">3 / 3 actifs</span>
+          </div>
+          <div class="op-list">
+            <div class="op-card active-op">
+              <div class="op-header">
+                <div class="op-logo" style="background:#f59e0b;">MTN</div>
+                <span class="op-name-txt">MTN MoMo</span>
+                <span class="op-badge op-on">Actif</span>
+              </div>
+              <div class="op-body-row">
+                <span class="op-num-txt">+229 97 00 00 00</span>
+                <button class="op-edit-btn" onclick="toast('Numéro MTN modifié')">Modifier le numéro</button>
+              </div>
+            </div>
+            <div class="op-card active-op">
+              <div class="op-header">
+                <div class="op-logo" style="background:#2563eb;">MOV</div>
+                <span class="op-name-txt">Moov Money</span>
+                <span class="op-badge op-on">Actif</span>
+              </div>
+              <div class="op-body-row">
+                <span class="op-num-txt">+229 96 00 00 00</span>
+                <button class="op-edit-btn" onclick="toast('Numéro Moov modifié')">Modifier le numéro</button>
+              </div>
+            </div>
+            <div class="op-card active-op">
+              <div class="op-header">
+                <div class="op-logo" style="background:#7c3aed;">CEL</div>
+                <span class="op-name-txt">Celtis</span>
+                <span class="op-badge op-on">Actif</span>
+              </div>
+              <div class="op-body-row">
+                <span class="op-num-txt">+229 95 00 00 00</span>
+                <button class="op-edit-btn" onclick="toast('Numéro Celtis modifié')">Modifier le numéro</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">Sécurité</div>
+            </div>
+            <div class="fgroup">
+              <div class="field">
+                <label>Mot de passe actuel</label>
+                <div class="pw-wrap">
+                  <input type="password" id="pw1" value="monmotdepasse">
+                  <button class="pw-toggle" onclick="togglePw('pw1')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="field">
+                <label>Nouveau mot de passe</label>
+                <div class="pw-wrap">
+                  <input type="password" id="pw2" placeholder="8 caractères minimum">
+                  <button class="pw-toggle" onclick="togglePw('pw2')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="field">
+                <label>Confirmer</label>
+                <input type="password" placeholder="Répétez le nouveau mot de passe">
+              </div>
+              <div class="edit-actions">
+                <button class="btn-save" onclick="toast('Mot de passe mis à jour')">Mettre à jour</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-box">
+            <div class="contact-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.38 2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <div>
+              <div class="contact-title">Demande de clôture de compte</div>
+              <div class="contact-desc">Pour fermer votre compte, contactez l'administrateur PayPME. Votre historique sera conservé conformément à la réglementation.</div>
+            </div>
+            <button class="contact-btn" onclick="toast('Demande envoyée à l\'administrateur')">Contacter</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="toast-bar" id="toast-bar">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="toast-msg"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggle(s){
+  const v=document.getElementById(s+'-view');
+  const e=document.getElementById(s+'-edit');
+  const editing=e.style.display!=='none';
+  v.style.display=editing?'flex':'none';
+  e.style.display=editing?'none':'flex';
+}
+function save(s){toggle(s);toast('Modifications enregistrées');}
+function togglePw(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';}
+let t=null;
+function toast(msg){
+  const bar=document.getElementById('toast-bar');
+  document.getElementById('toast-msg').textContent=msg;
+  bar.classList.add('show');
+  if(t)clearTimeout(t);
+  t=setTimeout(()=>bar.classList.remove('show'),2500);
+}
+</script>

@@ -1,0 +1,307 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.db{display:flex;min-height:700px;font-family:var(--font-sans);background:var(--color-background-tertiary);}
+.sidebar{width:200px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:1rem;border-bottom:0.5px solid var(--color-border-tertiary);}
+.sb-logo-box{width:26px;height:26px;background:#16a34a;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:500;}
+.sb-logo-name{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:1rem 0.75rem;flex:1;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-secondary);}
+.sb-item:hover{background:var(--color-background-secondary);}
+.sb-item.active{background:#f0fdf4;color:#15803d;font-weight:500;}
+.sb-icon{width:15px;height:15px;flex-shrink:0;}
+.sb-footer{padding:0.75rem;border-top:0.5px solid var(--color-border-tertiary);}
+.sb-merchant{display:flex;align-items:center;gap:8px;padding:8px 10px;}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#15803d;}
+.sb-commerce{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.sb-phone{font-size:11px;color:var(--color-text-tertiary);}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-danger);margin-top:2px;}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.25rem;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);}
+.back-link{font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.notif-btn{width:30px;height:30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--color-background-primary);}
+.profile-banner{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:12px;}
+.profile-avatar-lg{width:38px;height:38px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#15803d;border:2px solid #bbf7d0;}
+.profile-name{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+.profile-shop{font-size:12px;color:var(--color-text-secondary);}
+.profile-ops{display:flex;gap:4px;margin-top:3px;}
+.op-pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;}
+.op-mtn{background:#fef3c7;color:#92400e;}
+.op-moov{background:#dbeafe;color:#1e40af;}
+.op-celtis{background:#ede9fe;color:#5b21b6;}
+
+.content{flex:1;overflow-y:auto;padding:1.5rem;display:flex;align-items:flex-start;justify-content:center;gap:1rem;}
+
+/* Toast */
+.toast{position:absolute;top:16px;right:16px;background:var(--color-background-primary);border:0.5px solid #bbf7d0;border-left:3px solid #16a34a;border-radius:var(--border-radius-md);padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);animation:slideIn 0.3s ease;z-index:10;max-width:280px;}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.toast-icon{width:28px;height:28px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.toast-title{font-size:12px;font-weight:500;color:#15803d;}
+.toast-sub{font-size:11px;color:var(--color-text-secondary);}
+
+/* Confirmation card */
+.confirm-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:2rem;max-width:420px;width:100%;position:relative;}
+
+.status-circle{width:64px;height:64px;border-radius:50%;background:#dcfce7;border:3px solid #bbf7d0;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;}
+.confirm-title{font-size:18px;font-weight:500;color:#15803d;text-align:center;margin-bottom:4px;}
+.confirm-sub{font-size:13px;color:var(--color-text-secondary);text-align:center;margin-bottom:1.5rem;}
+
+.amount-box{background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:var(--border-radius-md);padding:1rem;text-align:center;margin-bottom:1.25rem;}
+.amount-val{font-size:32px;font-weight:500;color:#15803d;}
+.amount-label{font-size:12px;color:#4d7c0f;margin-top:4px;}
+
+.details-block{display:flex;flex-direction:column;gap:0;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:1.25rem;}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 12px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;}
+.detail-row:last-child{border:none;}
+.detail-key{color:var(--color-text-secondary);}
+.detail-val{font-weight:500;color:var(--color-text-primary);text-align:right;max-width:200px;}
+
+.ref-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;}
+.ref-label{font-size:11px;color:var(--color-text-tertiary);}
+.ref-val{font-size:12px;font-weight:500;color:var(--color-text-primary);font-family:var(--font-mono);}
+.copy-btn{font-size:11px;color:#16a34a;cursor:pointer;background:none;border:none;}
+
+.actions{display:flex;flex-direction:column;gap:8px;}
+.btn-primary{width:100%;height:40px;background:#16a34a;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-primary:hover{background:#15803d;}
+.btn-secondary{width:100%;height:38px;background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-secondary:hover{background:var(--color-background-secondary);}
+.btn-ghost{width:100%;height:36px;background:none;color:var(--color-text-secondary);border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;}
+.btn-ghost:hover{color:var(--color-text-primary);}
+
+.divider{display:flex;align-items:center;gap:8px;margin:4px 0;}
+.divider hr{flex:1;border:none;border-top:0.5px solid var(--color-border-tertiary);}
+.divider span{font-size:11px;color:var(--color-text-tertiary);}
+
+/* Échec toggle */
+.toggle-row{display:flex;gap:8px;margin-bottom:1.25rem;}
+.toggle-btn{flex:1;height:34px;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);color:var(--color-text-secondary);}
+.toggle-btn.on-success{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;}
+.toggle-btn.on-fail{background:#fee2e2;color:#b91c1c;border-color:#fca5a5;}
+</style>
+
+<div class="db">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box">P</div>
+      <span class="sb-logo-name">PayPME</span>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Tableau de bord
+      </div>
+      <div class="sb-item active">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Nouveau paiement
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Historique
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Mon profil
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-merchant">
+        <div class="sb-avatar">AK</div>
+        <div>
+          <div class="sb-commerce">Épicerie Kouassi</div>
+          <div class="sb-phone">+229 97 00 00 00</div>
+        </div>
+      </div>
+      <div class="sb-logout">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </div>
+
+  <div class="main" style="position:relative;">
+    <div class="topbar">
+      <div class="back-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Retour à l'accueil
+      </div>
+      <div class="notif-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+    </div>
+
+    <div class="profile-banner">
+      <div class="profile-avatar-lg">AK</div>
+      <div>
+        <div class="profile-name">Aïssatou Kouassi</div>
+        <div class="profile-shop">Épicerie Kouassi · Cotonou</div>
+        <div class="profile-ops">
+          <span class="op-pill op-mtn">MTN MoMo</span>
+          <span class="op-pill op-moov">Moov Money</span>
+          <span class="op-pill op-celtis">Celtis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast">
+      <div class="toast-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div class="toast-title">Paiement reçu !</div>
+        <div class="toast-sub">12 500 FCFA · MTN MoMo</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="confirm-card" id="confirm-card">
+
+        <!-- Toggle succès/échec pour démo -->
+        <div class="toggle-row">
+          <button class="toggle-btn on-success" onclick="showSuccess()">Voir succès</button>
+          <button class="toggle-btn" onclick="showFail()">Voir échec</button>
+        </div>
+
+        <!-- Succès -->
+        <div id="state-success">
+          <div class="status-circle">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="confirm-title">Paiement reçu !</div>
+          <div class="confirm-sub">La transaction a été confirmée avec succès</div>
+
+          <div class="amount-box">
+            <div class="amount-val">12 500 FCFA</div>
+            <div class="amount-label">Riz 25kg x2, Huile 1L, Savon x3</div>
+          </div>
+
+          <div class="details-block">
+            <div class="detail-row">
+              <span class="detail-key">Client</span>
+              <span class="detail-val">+229 97 12 34 56</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-key">Opérateur</span>
+              <span class="detail-val">MTN MoMo</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-key">Type</span>
+              <span class="detail-val">QR Code</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-key">Date & heure</span>
+              <span class="detail-val">30 avr. 2025 · 14h32</span>
+            </div>
+          </div>
+
+          <div class="ref-box">
+            <div>
+              <div class="ref-label">Référence transaction</div>
+              <div class="ref-val">TXN-20250430-0042</div>
+            </div>
+            <button class="copy-btn" onclick="this.textContent='Copié !'">Copier</button>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Télécharger le reçu PDF
+            </button>
+            <div class="divider"><hr><span>ou</span><hr></div>
+            <button class="btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Nouveau paiement
+            </button>
+            <button class="btn-ghost">Voir dans l'historique</button>
+          </div>
+        </div>
+
+        <!-- Échec -->
+        <div id="state-fail" style="display:none;">
+          <div class="status-circle" style="background:#fee2e2;border-color:#fca5a5;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+          <div class="confirm-title" style="color:#b91c1c;">Paiement échoué</div>
+          <div class="confirm-sub">La transaction n'a pas pu être complétée</div>
+
+          <div class="amount-box" style="background:#fef2f2;border-color:#fca5a5;">
+            <div class="amount-val" style="color:#b91c1c;">12 500 FCFA</div>
+            <div class="amount-label" style="color:#b91c1c;">Riz 25kg x2, Huile 1L, Savon x3</div>
+          </div>
+
+          <div class="details-block">
+            <div class="detail-row">
+              <span class="detail-key">Raison</span>
+              <span class="detail-val" style="color:#b91c1c;">Solde client insuffisant</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-key">Client</span>
+              <span class="detail-val">+229 97 12 34 56</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-key">Opérateur</span>
+              <span class="detail-val">MTN MoMo</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-key">Date & heure</span>
+              <span class="detail-val">30 avr. 2025 · 14h32</span>
+            </div>
+          </div>
+
+          <div class="ref-box">
+            <div>
+              <div class="ref-label">Référence transaction</div>
+              <div class="ref-val">TXN-20250430-0042</div>
+            </div>
+            <button class="copy-btn" onclick="this.textContent='Copié !'">Copier</button>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" style="background:#b91c1c;" onmouseover="this.style.background='#991b1b'" onmouseout="this.style.background='#b91c1c'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.9"/></svg>
+              Réessayer le paiement
+            </button>
+            <div class="divider"><hr><span>ou</span><hr></div>
+            <button class="btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Nouveau paiement
+            </button>
+            <button class="btn-ghost">Voir dans l'historique</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSuccess() {
+  document.getElementById('state-success').style.display = 'block';
+  document.getElementById('state-fail').style.display = 'none';
+  document.getElementById('toast').style.display = 'flex';
+  document.getElementById('toast').style.borderLeftColor = '#16a34a';
+  document.getElementById('toast').style.borderColor = '#bbf7d0';
+  document.getElementById('toast').querySelector('.toast-title').textContent = 'Paiement reçu !';
+  document.getElementById('toast').querySelector('.toast-title').style.color = '#15803d';
+  document.getElementById('toast').querySelector('.toast-sub').textContent = '12 500 FCFA · MTN MoMo';
+  document.querySelector('.toggle-btn:first-child').className = 'toggle-btn on-success';
+  document.querySelector('.toggle-btn:last-child').className = 'toggle-btn';
+}
+
+function showFail() {
+  document.getElementById('state-success').style.display = 'none';
+  document.getElementById('state-fail').style.display = 'block';
+  document.getElementById('toast').style.display = 'flex';
+  document.getElementById('toast').style.borderLeftColor = '#b91c1c';
+  document.getElementById('toast').style.borderColor = '#fca5a5';
+  document.getElementById('toast').querySelector('.toast-title').textContent = 'Paiement échoué';
+  document.getElementById('toast').querySelector('.toast-title').style.color = '#b91c1c';
+  document.getElementById('toast').querySelector('.toast-sub').textContent = 'Solde insuffisant · MTN MoMo';
+  document.querySelector('.toggle-btn:first-child').className = 'toggle-btn';
+  document.querySelector('.toggle-btn:last-child').className = 'toggle-btn on-fail';
+}
+</script>

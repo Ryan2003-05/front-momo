@@ -1,0 +1,409 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.db{display:flex;min-height:780px;font-family:var(--font-sans);background:var(--color-background-tertiary);}
+.sidebar{width:210px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:1rem;border-bottom:0.5px solid var(--color-border-tertiary);}
+.sb-logo-box{width:26px;height:26px;background:#1e3a5f;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:500;}
+.sb-logo-name{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.sb-nav{display:flex;flex-direction:column;gap:2px;padding:1rem 0.75rem;flex:1;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-secondary);}
+.sb-item:hover{background:var(--color-background-secondary);}
+.sb-item.active{background:#eff6ff;color:#1e3a5f;font-weight:500;}
+.sb-icon{width:15px;height:15px;flex-shrink:0;}
+.sb-sep{padding:8px 10px;font-size:10px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-top:6px;}
+.sb-badge{font-size:9px;background:#fee2e2;color:#b91c1c;padding:2px 6px;border-radius:8px;font-weight:500;margin-left:auto;}
+.sb-footer{padding:0.75rem;border-top:0.5px solid var(--color-border-tertiary);}
+.sb-admin{display:flex;align-items:center;gap:8px;padding:8px 10px;}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#1e3a5f;}
+.sb-name{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.sb-role{font-size:11px;color:var(--color-text-tertiary);}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-danger);margin-top:2px;}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1.25rem;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);}
+.topbar-title{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.notif-btn{width:30px;height:30px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;background:var(--color-background-primary);}
+.notif-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;background:#ef4444;border-radius:50%;}
+.admin-chip{display:flex;align-items:center;gap:8px;padding:5px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);}
+.admin-avatar{width:24px;height:24px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#1e3a5f;}
+.admin-name{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.admin-role-badge{font-size:10px;background:#eff6ff;color:#1e3a5f;padding:2px 6px;border-radius:8px;border:0.5px solid #bfdbfe;}
+
+.content{flex:1;overflow-y:auto;padding:1rem 1.25rem;display:flex;flex-direction:column;gap:0.875rem;}
+
+.op-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.op-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;display:flex;flex-direction:column;gap:10px;}
+.op-card.degraded{border-color:#fca5a5;border-width:1px;}
+.op-card-head{display:flex;align-items:center;gap:10px;}
+.op-logo{width:40px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:500;flex-shrink:0;}
+.op-card-name{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.op-card-status{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;margin-left:auto;}
+.st-ok{background:#dcfce7;color:#15803d;}
+.st-deg{background:#fee2e2;color:#b91c1c;}
+.st-off{background:var(--color-background-secondary);color:var(--color-text-tertiary);}
+
+.op-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px;}
+.metric-label{font-size:10px;color:var(--color-text-tertiary);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.3px;}
+.metric-val{font-size:15px;font-weight:500;color:var(--color-text-primary);}
+.metric-val.good{color:#15803d;}
+.metric-val.bad{color:#b91c1c;}
+.metric-val.warn{color:#854d0e;}
+
+.progress-wrap{display:flex;flex-direction:column;gap:4px;}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);}
+.progress-bar{height:6px;border-radius:3px;background:var(--color-background-secondary);overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.3s;}
+
+.op-actions{display:flex;gap:6px;}
+.btn-test{flex:1;height:32px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);display:flex;align-items:center;justify-content:center;gap:5px;}
+.btn-test:hover{background:var(--color-background-secondary);}
+.btn-toggle{flex:1;height:32px;border-radius:var(--border-radius-md);font-size:12px;cursor:pointer;border:none;font-weight:500;}
+.btn-disable{background:#fee2e2;color:#b91c1c;}
+.btn-disable:hover{background:#fecaca;}
+.btn-enable{background:#dcfce7;color:#15803d;}
+.btn-enable:hover{background:#bbf7d0;}
+
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.875rem;}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary);}
+
+.legend{display:flex;gap:14px;margin-bottom:8px;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary);}
+.leg-dot{width:10px;height:10px;border-radius:2px;}
+
+.incident-table{width:100%;border-collapse:collapse;}
+.incident-table th{font-size:11px;color:var(--color-text-tertiary);text-align:left;padding:6px 10px;border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:0.4px;font-weight:500;}
+.incident-table td{font-size:12px;padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);}
+.incident-table tr:last-child td{border:none;}
+.incident-table tr:hover td{background:var(--color-background-secondary);}
+.inc-op{display:flex;align-items:center;gap:6px;}
+.inc-logo{width:28px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:500;}
+.inc-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;}
+.inc-resolved{background:#dcfce7;color:#15803d;}
+.inc-active{background:#fee2e2;color:#b91c1c;}
+
+.test-modal{background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:#15803d;display:none;align-items:center;gap:8px;margin-top:6px;}
+.test-modal.show{display:flex;}
+</style>
+
+<div class="db">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-box">P</div>
+      <span class="sb-logo-name">PayPME Admin</span>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sep">Principal</div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Vue d'ensemble
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Commerçants
+        <span class="sb-badge">3</span>
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Transactions
+      </div>
+      <div class="sb-sep">Système</div>
+      <div class="sb-item active">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Opérateurs
+      </div>
+      <div class="sb-item">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Logs système
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-admin">
+        <div class="sb-avatar">JA</div>
+        <div>
+          <div class="sb-name">Jean Adjovi</div>
+          <div class="sb-role">Administrateur</div>
+        </div>
+      </div>
+      <div class="sb-logout">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Opérateurs mobile money</span>
+      <div class="topbar-right">
+        <div class="notif-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="admin-chip">
+          <div class="admin-avatar">JA</div>
+          <span class="admin-name">Jean Adjovi</span>
+          <span class="admin-role-badge">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Cartes opérateurs -->
+      <div class="op-cards">
+
+        <!-- MTN -->
+        <div class="op-card">
+          <div class="op-card-head">
+            <div class="op-logo" style="background:#f59e0b;">MTN</div>
+            <div>
+              <div class="op-card-name">MTN MoMo</div>
+            </div>
+            <span class="op-card-status st-ok">En ligne</span>
+          </div>
+          <div class="op-metrics">
+            <div class="metric">
+              <div class="metric-label">Transactions</div>
+              <div class="metric-val good">724</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Taux succès</div>
+              <div class="metric-val good">91%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Tps réponse</div>
+              <div class="metric-val">1,2s</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Volume</div>
+              <div class="metric-val">28,4M F</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>Taux de succès</span><span>91%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:91%;background:#16a34a;"></div></div>
+          </div>
+          <div class="op-actions">
+            <button class="btn-test" onclick="testOp('mtn')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.9"/></svg>
+              Tester
+            </button>
+            <button class="btn-toggle btn-disable" onclick="toggleOp(this,'mtn')">Désactiver</button>
+          </div>
+          <div class="test-modal" id="test-mtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            MTN MoMo répond correctement — 1,2s
+          </div>
+        </div>
+
+        <!-- Moov -->
+        <div class="op-card">
+          <div class="op-card-head">
+            <div class="op-logo" style="background:#2563eb;">MOV</div>
+            <div>
+              <div class="op-card-name">Moov Money</div>
+            </div>
+            <span class="op-card-status st-ok">En ligne</span>
+          </div>
+          <div class="op-metrics">
+            <div class="metric">
+              <div class="metric-label">Transactions</div>
+              <div class="metric-val good">398</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Taux succès</div>
+              <div class="metric-val good">86%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Tps réponse</div>
+              <div class="metric-val">1,8s</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Volume</div>
+              <div class="metric-val">14,6M F</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>Taux de succès</span><span>86%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:86%;background:#16a34a;"></div></div>
+          </div>
+          <div class="op-actions">
+            <button class="btn-test" onclick="testOp('moov')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.9"/></svg>
+              Tester
+            </button>
+            <button class="btn-toggle btn-disable" onclick="toggleOp(this,'moov')">Désactiver</button>
+          </div>
+          <div class="test-modal" id="test-moov">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Moov Money répond correctement — 1,8s
+          </div>
+        </div>
+
+        <!-- Celtis -->
+        <div class="op-card degraded">
+          <div class="op-card-head">
+            <div class="op-logo" style="background:#7c3aed;">CEL</div>
+            <div>
+              <div class="op-card-name">Celtis</div>
+            </div>
+            <span class="op-card-status st-deg">Dégradé</span>
+          </div>
+          <div class="op-metrics">
+            <div class="metric">
+              <div class="metric-label">Transactions</div>
+              <div class="metric-val warn">162</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Taux succès</div>
+              <div class="metric-val bad">71%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Tps réponse</div>
+              <div class="metric-val bad">4,7s</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Volume</div>
+              <div class="metric-val">5,2M F</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>Taux de succès</span><span style="color:#b91c1c;">71%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:71%;background:#ef4444;"></div></div>
+          </div>
+          <div class="op-actions">
+            <button class="btn-test" onclick="testOp('celtis')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.9"/></svg>
+              Tester
+            </button>
+            <button class="btn-toggle btn-disable" onclick="toggleOp(this,'celtis')">Désactiver</button>
+          </div>
+          <div class="test-modal" id="test-celtis" style="background:#fef2f2;border-color:#fca5a5;color:#b91c1c;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Celtis répond lentement — 4,7s · Taux dégradé
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphique comparatif -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Comparaison des opérateurs — 7 derniers jours</div>
+        </div>
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot" style="background:#f59e0b;"></div> MTN MoMo</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#2563eb;"></div> Moov Money</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#7c3aed;"></div> Celtis</div>
+        </div>
+        <div style="position:relative;width:100%;height:180px;">
+          <canvas id="chartOp" role="img" aria-label="Comparaison des transactions par opérateur sur 7 jours">MTN, Moov et Celtis sur 7 jours.</canvas>
+        </div>
+      </div>
+
+      <!-- Historique des incidents -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Historique des incidents</div>
+          <span style="font-size:11px;color:var(--color-text-tertiary);">30 derniers jours</span>
+        </div>
+        <table class="incident-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Opérateur</th>
+              <th>Type</th>
+              <th>Durée</th>
+              <th>Impact</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>30 avr. 2025 · 11h20</td>
+              <td><div class="inc-op"><div class="inc-logo" style="background:#7c3aed;">CEL</div>Celtis</div></td>
+              <td>Dégradation</td>
+              <td>En cours</td>
+              <td>47 txn affectées</td>
+              <td><span class="inc-badge inc-active">Actif</span></td>
+            </tr>
+            <tr>
+              <td>28 avr. 2025 · 14h05</td>
+              <td><div class="inc-op"><div class="inc-logo" style="background:#2563eb;">MOV</div>Moov</div></td>
+              <td>Panne totale</td>
+              <td>1h 23min</td>
+              <td>214 txn affectées</td>
+              <td><span class="inc-badge inc-resolved">Résolu</span></td>
+            </tr>
+            <tr>
+              <td>24 avr. 2025 · 08h30</td>
+              <td><div class="inc-op"><div class="inc-logo" style="background:#f59e0b;">MTN</div>MTN</div></td>
+              <td>Lenteur</td>
+              <td>42min</td>
+              <td>89 txn affectées</td>
+              <td><span class="inc-badge inc-resolved">Résolu</span></td>
+            </tr>
+            <tr>
+              <td>19 avr. 2025 · 19h45</td>
+              <td><div class="inc-op"><div class="inc-logo" style="background:#7c3aed;">CEL</div>Celtis</div></td>
+              <td>Panne totale</td>
+              <td>3h 10min</td>
+              <td>312 txn affectées</td>
+              <td><span class="inc-badge inc-resolved">Résolu</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+new Chart(document.getElementById('chartOp'), {
+  type: 'line',
+  data: {
+    labels: ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],
+    datasets: [
+      { label:'MTN MoMo', data:[680,720,650,800,750,850,724], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.08)', tension:0.3, borderWidth:2, pointRadius:3 },
+      { label:'Moov Money', data:[380,420,350,450,400,480,398], borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.08)', tension:0.3, borderWidth:2, pointRadius:3 },
+      { label:'Celtis', data:[180,190,160,210,180,200,162], borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,0.08)', tension:0.3, borderWidth:2, pointRadius:3, borderDash:[4,3] }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ grid:{ display:false }, ticks:{ font:{ size:10 } } },
+      y:{ grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ font:{ size:10 } } }
+    }
+  }
+});
+
+function testOp(op) {
+  const el = document.getElementById('test-'+op);
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function toggleOp(btn, op) {
+  const isActive = btn.textContent.trim() === 'Désactiver';
+  btn.textContent = isActive ? 'Réactiver' : 'Désactiver';
+  btn.className = isActive ? 'btn-toggle btn-enable' : 'btn-toggle btn-disable';
+  const card = btn.closest('.op-card');
+  const statusEl = card.querySelector('.op-card-status');
+  if (isActive) {
+    statusEl.textContent = 'Désactivé';
+    statusEl.className = 'op-card-status st-off';
+    card.style.opacity = '0.6';
+  } else {
+    statusEl.textContent = op === 'celtis' ? 'Dégradé' : 'En ligne';
+    statusEl.className = op === 'celtis' ? 'op-card-status st-deg' : 'op-card-status st-ok';
+    card.style.opacity = '1';
+  }
+}
+</script>
