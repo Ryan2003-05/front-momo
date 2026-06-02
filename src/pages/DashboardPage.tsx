@@ -98,9 +98,15 @@ export default function DashboardPage() {
     const fetchDashboard = async () => {
       setLoading(true);
       try {
+        console.log("TOKEN =", localStorage.getItem("token"));
+
         const response = await api.get(`/dashboard?periode=${periode}`);
+
+        console.log("DASHBOARD RESPONSE =", response.data);
+
         setData(response.data);
-      } catch {
+      } catch (error) {
+        console.error("Dashboard Error:", error);
         showToast("Impossible de charger le tableau de bord.", "error");
       } finally {
         setLoading(false);
