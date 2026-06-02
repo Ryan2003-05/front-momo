@@ -45,20 +45,20 @@ type DashboardStats = {
 };
 
 const opColors: Record<string, string> = {
-  MTN:    "bg-amber-500",
-  Moov:   "bg-blue-600",
+  MTN: "bg-amber-500",
+  Moov: "bg-blue-600",
   Celtiis: "bg-purple-600",
 };
 
 const opBadge: Record<string, string> = {
-  MTN:    "bg-amber-100 text-amber-800",
-  Moov:   "bg-blue-100 text-blue-800",
+  MTN: "bg-amber-100 text-amber-800",
+  Moov: "bg-blue-100 text-blue-800",
   Celtiis: "bg-purple-100 text-purple-800",
 };
 
 const opLabels: Record<string, string> = {
-  MTN:    "MTN MoMo",
-  Moov:   "Moov Money",
+  MTN: "MTN MoMo",
+  Moov: "Moov Money",
   Celtiis: "Celtiis",
 };
 
@@ -66,9 +66,9 @@ const opLabels: Record<string, string> = {
 
 export default function ProfilePage() {
   const [editingSection, setEditingSection] = useState<"none" | "personal" | "commerce">("none");
-  const [toastMessage, setToastMessage]     = useState("");
-  const [loading, setLoading]               = useState(true);
-  const [saving, setSaving]                 = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
 
   const [personal, setPersonal] = useState<PersonalInfo>({
@@ -80,7 +80,7 @@ export default function ProfilePage() {
   });
 
   const [accounts, setAccounts] = useState<AccountInfo[]>([]);
-  const [stats, setStats]       = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [initials, setInitials] = useState("??");
   const [memberSince, setMemberSince] = useState("");
 
@@ -101,22 +101,25 @@ export default function ProfilePage() {
           api.get("/commercant/profil"),
           api.get("/dashboard?periode=tout"),
         ]);
+        console.log(
+          JSON.stringify(profilRes.data, null, 2)
+        );
 
         const c = profilRes.data.commercant;
         const u = c.user;
 
         setPersonal({
           firstName: c.prenom,
-          lastName:  c.nom,
-          phone:     c.telephone,
-          email:     u?.email ?? "",
+          lastName: c.nom,
+          phone: c.telephone,
+          email: u?.email ?? "",
         });
 
         setCommerce({
-          shopName:     c.nom_entreprise,
+          shopName: c.nom_entreprise,
           businessType: c.type_commerce,
-          city:         c.ville,
-          ifu:          c.ifu ?? "",
+          city: c.ville,
+          ifu: c.ifu ?? "",
         });
 
         setInitials(`${c.prenom.charAt(0)}${c.nom.charAt(0)}`.toUpperCase());
@@ -131,11 +134,11 @@ export default function ProfilePage() {
           id: string; numero: string; actif: boolean;
           operateur: { nom: string };
         }) => ({
-          id:          co.id,
-          label:       opLabels[co.operateur.nom] ?? co.operateur.nom,
-          number:      co.numero,
-          colorClass:  opColors[co.operateur.nom] ?? "bg-gray-400",
-          active:      co.actif,
+          id: co.id,
+          label: opLabels[co.operateur.nom] ?? co.operateur.nom,
+          number: co.numero,
+          colorClass: opColors[co.operateur.nom] ?? "bg-gray-400",
+          active: co.actif,
           operateurNom: co.operateur.nom,
         }));
         setAccounts(comptesData);
@@ -179,8 +182,8 @@ export default function ProfilePage() {
     setSaving(true);
     try {
       await api.put("/commercant/profil", {
-        nom:      personal.lastName,
-        prenom:   personal.firstName,
+        nom: personal.lastName,
+        prenom: personal.firstName,
         telephone: personal.phone,
       });
       setEditingSection("none");
@@ -198,9 +201,9 @@ export default function ProfilePage() {
     try {
       await api.put("/commercant/profil", {
         nom_entreprise: commerce.shopName,
-        type_commerce:  commerce.businessType,
-        ville:          commerce.city,
-        ifu:            commerce.ifu || null,
+        type_commerce: commerce.businessType,
+        ville: commerce.city,
+        ifu: commerce.ifu || null,
       });
       setEditingSection("none");
       showToast("Informations du commerce mises à jour");
@@ -220,8 +223,8 @@ export default function ProfilePage() {
     setSavingPassword(true);
     try {
       await api.put("/commercant/mot-de-passe", {
-        mot_de_passe_actuel:           passwords.current,
-        nouveau_mot_de_passe:          passwords.next,
+        mot_de_passe_actuel: passwords.current,
+        nouveau_mot_de_passe: passwords.next,
         nouveau_mot_de_passe_confirmation: passwords.confirm,
       });
       setPasswords({ current: "", next: "", confirm: "" });
@@ -302,10 +305,10 @@ export default function ProfilePage() {
               {editingSection !== "personal" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {[
-                    { label: "Prénom",    value: personal.firstName },
-                    { label: "Nom",       value: personal.lastName },
+                    { label: "Prénom", value: personal.firstName },
+                    { label: "Nom", value: personal.lastName },
                     { label: "Téléphone", value: personal.phone },
-                    { label: "Email",     value: personal.email },
+                    { label: "Email", value: personal.email },
                   ].map(({ label, value }) => (
                     <div key={label}>
                       <p className="text-[11px] uppercase tracking-wide text-gray-500">{label}</p>
@@ -316,8 +319,8 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4">
                   {([
-                    { label: "Prénom",    field: "firstName" as const },
-                    { label: "Nom",       field: "lastName" as const },
+                    { label: "Prénom", field: "firstName" as const },
+                    { label: "Nom", field: "lastName" as const },
                     { label: "Téléphone", field: "phone" as const },
                   ]).map(({ label, field }) => (
                     <label key={field} className="block">
@@ -352,10 +355,10 @@ export default function ProfilePage() {
               {editingSection !== "commerce" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {[
-                    { label: "Nom du commerce",  value: commerce.shopName },
+                    { label: "Nom du commerce", value: commerce.shopName },
                     { label: "Type de commerce", value: commerce.businessType },
-                    { label: "Ville",            value: commerce.city },
-                    { label: "IFU",              value: commerce.ifu || "Non renseigné" },
+                    { label: "Ville", value: commerce.city },
+                    { label: "IFU", value: commerce.ifu || "Non renseigné" },
                   ].map(({ label, value }) => (
                     <div key={label}>
                       <p className="text-[11px] uppercase tracking-wide text-gray-500">{label}</p>
@@ -366,10 +369,10 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4">
                   {([
-                    { label: "Nom du commerce",  field: "shopName" as const },
+                    { label: "Nom du commerce", field: "shopName" as const },
                     { label: "Type de commerce", field: "businessType" as const },
-                    { label: "Ville",            field: "city" as const },
-                    { label: "IFU",              field: "ifu" as const },
+                    { label: "Ville", field: "city" as const },
+                    { label: "IFU", field: "ifu" as const },
                   ]).map(({ label, field }) => (
                     <label key={field} className="block">
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</span>
@@ -429,9 +432,9 @@ export default function ProfilePage() {
               <p className="mb-4 text-sm font-semibold text-gray-900">Sécurité</p>
               <div className="space-y-4">
                 {([
-                  { label: "Mot de passe actuel",    field: "current" as const, placeholder: "Votre mot de passe" },
-                  { label: "Nouveau mot de passe",   field: "next" as const,    placeholder: "8 caractères minimum" },
-                  { label: "Confirmer",              field: "confirm" as const, placeholder: "Répétez le nouveau" },
+                  { label: "Mot de passe actuel", field: "current" as const, placeholder: "Votre mot de passe" },
+                  { label: "Nouveau mot de passe", field: "next" as const, placeholder: "8 caractères minimum" },
+                  { label: "Confirmer", field: "confirm" as const, placeholder: "Répétez le nouveau" },
                 ]).map(({ label, field, placeholder }) => (
                   <div key={field} className="relative">
                     <label className="mb-1 block text-[11px] uppercase tracking-wide text-gray-500">{label}</label>

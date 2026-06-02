@@ -140,6 +140,8 @@ export default function NewPaymentPage() {
   const [ussdNumber, setUssdNumber] = useState("");
   const [selectedCompte, setSelectedCompte] = useState<string>("");
   const [comptes, setComptes] = useState<CompteOperateur[]>([]);
+  const [comptesLoading, setComptesLoading] = useState(true);
+  const [comptesError, setComptesError] = useState("");
   const [timerSeconds, setTimerSeconds] = useState(180);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SessionResult | null>(null);
@@ -161,13 +163,19 @@ export default function NewPaymentPage() {
   // Charger les comptes opérateurs actifs
   useEffect(() => {
     const fetchComptes = async () => {
+      setComptesLoading(true);
+      setComptesError("");
       try {
         const response = await api.get<{ comptes: CompteOperateur[] }>("/commercant/comptes-operateurs");
-        const actifs = response.data.comptes.filter((c) => c.actif && c.operateur.actif);
+        const actifs = (response.data.comptes ?? []).filter((c) => c.actif && c.operateur?.actif);
         setComptes(actifs);
         if (actifs.length > 0) setSelectedCompte(actifs[0].id);
       } catch {
-        showToast("Impossible de charger vos comptes opérateurs.", "error");
+        const message = "Impossible de charger vos comptes opérateurs.";
+        setComptesError(message);
+        showToast(message, "error");
+      } finally {
+        setComptesLoading(false);
       }
     };
     fetchComptes();
@@ -437,8 +445,16 @@ export default function NewPaymentPage() {
           {/* Compte de réception */}
           <section className="rounded-lg border border-gray-200 bg-white p-4">
             <p className="mb-3 text-[13px] font-medium text-gray-900">Compte de réception</p>
-            {comptes.length === 0 ? (
+            {comptesLoading ? (
               <p className="text-xs text-gray-400">Chargement des comptes...</p>
+            ) : comptesError ? (
+              <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-600">
+                {comptesError}
+              </p>
+            ) : comptes.length === 0 ? (
+              <p className="rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                Aucun compte opérateur actif trouvé. Vérifiez votre profil ou contactez l'administrateur.
+              </p>
             ) : (
               <div className="flex flex-col gap-2">
                 {comptes.map((c) => (
