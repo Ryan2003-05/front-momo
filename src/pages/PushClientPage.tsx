@@ -16,6 +16,13 @@ interface PushData {
   commerce: string;
   numero: string;
   expires_at: string;
+  reference?: string;
+  provider?: string;
+  payload?: {
+    delivery_status?: string;
+    channel?: string;
+    operateur_detecte?: string;
+  };
 }
 
 const API = API_URL;
@@ -46,7 +53,9 @@ function formatTimer(seconds: number): string {
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 export default function PushClientPage() {
-  const numeroClient = new URLSearchParams(window.location.search).get("numero") ?? "";
+  const searchParams = new URLSearchParams(window.location.search);
+  const numeroClient = searchParams.get("numero") ?? "";
+  const pushReference = searchParams.get("reference") ?? "";
   const [etape, setEtape]               = useState<Etape>("attente");
   const [push, setPush]                 = useState<PushData | null>(null);
   const [pin, setPin]                   = useState("");
@@ -68,7 +77,10 @@ export default function PushClientPage() {
   useEffect(() => {
     const poll = async () => {
       try {
-        const query = numeroClient ? `?numero=${encodeURIComponent(numeroClient)}` : "";
+        const params = new URLSearchParams();
+        if (numeroClient) params.set("numero", numeroClient);
+        if (pushReference) params.set("reference", pushReference);
+        const query = params.toString() ? `?${params.toString()}` : "";
         const res  = await axios.get(`${API}/push-status${query}`);
         const data = res.data;
         if (data.push && data.push.id !== lastPushId.current) {
@@ -88,7 +100,7 @@ export default function PushClientPage() {
     poll();
     pollingRef.current = window.setInterval(poll, 2000);
     return () => { if (pollingRef.current) window.clearInterval(pollingRef.current); };
-  }, [numeroClient]);
+  }, [numeroClient, pushReference]);
 
   // ── Timer session ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -183,7 +195,7 @@ export default function PushClientPage() {
 
         {/* Header */}
         <div className="text-center mb-5">
-          <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Simulateur</p>
+          <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Mobile Money</p>
           <h1 className="text-white text-base font-semibold">Téléphone Mobile Money</h1>
         </div>
 
@@ -271,6 +283,7 @@ export default function PushClientPage() {
                       { label: "Marchand", value: push.commerce },
                       { label: "Motif",    value: push.libelle },
                       { label: "Numéro",   value: push.numero },
+                      ...(push.reference ? [{ label: "Référence", value: push.reference }] : []),
                     ].map(({ label, value }) => (
                       <div key={label} className="flex justify-between items-center">
                         <span className="text-gray-500 text-[11px]">{label}</span>
@@ -420,7 +433,7 @@ export default function PushClientPage() {
         </div>
 
         <p className="text-gray-700 text-[10px] text-center mt-4">
-          Paycom · Simulation Mobile Money · Projet académique
+          Paycom Mobile Money
         </p>
       </div>
     </div>

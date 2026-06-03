@@ -59,6 +59,11 @@ type SessionDetailResponse = {
 
 type PushResponse = {
   push_url?: string;
+  message?: string;
+  statut_envoi?: "ENVOYE" | "SIMULE" | "ECHEC_ENVOI";
+  channel?: "sms" | "virtual_push";
+  push_reference?: string;
+  contenu_message?: string;
 };
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -199,6 +204,8 @@ export default function NewPaymentPage() {
   const [qrImageUrl, setQrImageUrl] = useState<string>("");
   const [lienGateway, setLienGateway] = useState<string>("");
   const [pushClientUrl, setPushClientUrl] = useState<string>("");
+  const [pushDeliveryStatus, setPushDeliveryStatus] = useState<string>("");
+  const [pushReference, setPushReference] = useState<string>("");
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error" | "info">("error");
   const timerRef = useRef<number | null>(null);
@@ -335,6 +342,8 @@ export default function NewPaymentPage() {
             setQrImageUrl("");
             setLienGateway("");
             setPushClientUrl("");
+            setPushDeliveryStatus("");
+            setPushReference("");
             setSessionId(null);
             setPaiementStatut(null);
             setTimerSeconds(180);
@@ -393,6 +402,8 @@ export default function NewPaymentPage() {
     setQrImageUrl("");
     setLienGateway("");
     setPushClientUrl("");
+    setPushDeliveryStatus("");
+    setPushReference("");
 
     try {
       const apiType = paymentTypes.find((t) => t.key === currentType)?.apiType ?? "QR_CODE";
@@ -439,7 +450,11 @@ export default function NewPaymentPage() {
         const sessionId = response.data.session.id;
         const pushResponse = await api.post<PushResponse>(`/gateway/${sessionId}/push`, { numero_client: ussdNumber });
         setPushClientUrl(pushResponse.data.push_url ?? "");
-        showToast(`✓ Push USSD envoyé au ${ussdNumber}`, "success");
+        setPushDeliveryStatus(pushResponse.data.statut_envoi ?? "");
+        setPushReference(pushResponse.data.push_reference ?? "");
+
+        const deliveryMessage = pushResponse.data.message ?? `Push créé pour ${ussdNumber}`;
+        showToast(deliveryMessage, pushResponse.data.statut_envoi === "ECHEC_ENVOI" ? "error" : "success");
       }
 
     } catch (err) {
@@ -477,7 +492,7 @@ export default function NewPaymentPage() {
                 const active = currentType === type.key;
                 return (
                   <button key={type.key} type="button"
-                    onClick={() => { setCurrentType(type.key); setResult(null); setQrImageUrl(""); setLienGateway(""); setPushClientUrl(""); }}
+                    onClick={() => { setCurrentType(type.key); setResult(null); setQrImageUrl(""); setLienGateway(""); setPushClientUrl(""); setPushDeliveryStatus(""); setPushReference(""); }}
                     className={`rounded-md border px-2 py-2.5 text-center transition ${active ? "border-green-600 bg-green-50" : "border-gray-200 bg-white hover:bg-gray-50"}`}>
                     <span className={`mb-1 flex justify-center ${active ? "text-green-700" : "text-gray-600"}`}>{type.icon}</span>
                     <span className={`block text-xs font-medium ${active ? "text-green-700" : "text-gray-600"}`}>{type.label}</span>
@@ -772,7 +787,19 @@ export default function NewPaymentPage() {
                 {/* USSD */}
                 {currentType === "ussd" && result && (
                   <div className="mt-3 rounded-md border border-green-200 bg-green-50 p-3 text-[11px] text-green-700">
-                    ✓ Push USSD envoyé au {ussdNumber}
+                    <p className="font-semibold">
+                      {pushDeliveryStatus === "ENVOYE"
+                        ? `SMS push envoyé au ${ussdNumber}`
+                        : pushDeliveryStatus === "ECHEC_ENVOI"
+                          ? `Demande push créée, SMS non envoyé au ${ussdNumber}`
+                          : `Push simulé disponible pour ${ussdNumber}`}
+                    </p>
+
+                    {pushReference && (
+                      <p className="mt-1 text-green-600">
+                        Référence: {pushReference}
+                      </p>
+                    )}
 
                     {pushClientUrl && (
                       <a
@@ -781,7 +808,7 @@ export default function NewPaymentPage() {
                         rel="noreferrer"
                         className="mt-2 block break-all rounded-md bg-white px-2 py-1 text-green-700 underline"
                       >
-                        Ouvrir le simulateur client
+                        Ouvrir le téléphone client
                       </a>
                     )}
 
