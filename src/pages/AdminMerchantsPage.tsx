@@ -25,7 +25,9 @@ interface Merchant {
   ifu: string | null;
   created_at: string;
   status: MerchantStatusType;
+  statut?: MerchantStatusType;
   compte_operateurs: CompteOperateur[];
+  user?: { email: string };
   utilisateur?: { email: string };
   total_transactions?: number;
   taux_succes?: number;
@@ -35,6 +37,13 @@ interface AdminUser {
   nom?: string;
   prenom?: string;
 }
+
+type AdminMerchantStats = {
+  total: number;
+  actifs: number;
+  attente: number;
+  suspendus: number;
+};
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -80,6 +89,33 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function normalizeMerchant(c: Merchant): Merchant {
+  return {
+    ...c,
+    status: c.statut ?? c.status ?? "actif",
+    utilisateur: c.utilisateur ?? c.user,
+  };
+}
+
+const statKeyByStatus: Record<MerchantStatusType, keyof Omit<AdminMerchantStats, "total">> = {
+  actif: "actifs",
+  attente: "attente",
+  suspendu: "suspendus",
+};
+
+function moveStatusCount(stats: AdminMerchantStats, previous: MerchantStatusType, next: MerchantStatusType): AdminMerchantStats {
+  if (previous === next) return stats;
+
+  const previousKey = statKeyByStatus[previous];
+  const nextKey = statKeyByStatus[next];
+
+  return {
+    ...stats,
+    [previousKey]: Math.max(0, stats[previousKey] - 1),
+    [nextKey]: stats[nextKey] + 1,
+  };
+}
+
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 export default function AdminMerchantsPage() {
@@ -94,6 +130,7 @@ export default function AdminMerchantsPage() {
   const [filterStatus, setFilterStatus]         = useState<MerchantStatusType | "tous">("tous");
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
   const [adminUser, setAdminUser]               = useState<AdminUser | null>(null);
+  const [adminStats, setAdminStats]             = useState<AdminMerchantStats>({ total: 0, actifs: 0, attente: 0, suspendus: 0 });
   const [toastMessage, setToastMessage]         = useState("");
   const [toastType, setToastType]               = useState<"success" | "error" | "info">("error");
 
@@ -115,10 +152,16 @@ export default function AdminMerchantsPage() {
   const fetchMerchants = async () => {
     setLoading(true);
     try {
-      const response = await api.get<{ commercants: { data: Merchant[] } }>("/admin/commercants");
+      const response = await api.get<{ commercants: { data: Merchant[]; total: number }; stats?: AdminMerchantStats }>("/admin/commercants");
       const data = response.data.commercants.data ?? [];
-      const mapped = data.map((c) => ({ ...c, status: "actif" as MerchantStatusType }));
+      const mapped = data.map(normalizeMerchant);
       setMerchants(mapped);
+      setAdminStats(response.data.stats ?? {
+        total: response.data.commercants.total ?? mapped.length,
+        actifs: mapped.filter((m) => m.status === "actif").length,
+        attente: mapped.filter((m) => m.status === "attente").length,
+        suspendus: mapped.filter((m) => m.status === "suspendu").length,
+      });
     } catch {
       // token expiré → intercepteur redirige
     } finally {
@@ -129,9 +172,11 @@ export default function AdminMerchantsPage() {
   const handleSuspendre = async (id: string) => {
     setActionLoading(id);
     try {
+      const previousStatus = merchants.find((m) => m.id === id)?.status ?? "actif";
       await api.put(`/admin/commercants/${id}/suspendre`);
-      setMerchants((prev) => prev.map((m) => m.id === id ? { ...m, status: "suspendu" } : m));
-      if (selectedMerchant?.id === id) setSelectedMerchant((prev) => prev ? { ...prev, status: "suspendu" } : null);
+      setMerchants((prev) => prev.map((m) => m.id === id ? { ...m, status: "suspendu", statut: "suspendu" } : m));
+      setAdminStats((prev) => moveStatusCount(prev, previousStatus, "suspendu"));
+      if (selectedMerchant?.id === id) setSelectedMerchant((prev) => prev ? { ...prev, status: "suspendu", statut: "suspendu" } : null);
       showToast("Compte suspendu avec succès.", "success");
     } catch {
       showToast("Erreur lors de la suspension.", "error");
@@ -143,9 +188,11 @@ export default function AdminMerchantsPage() {
   const handleReactiver = async (id: string) => {
     setActionLoading(id);
     try {
+      const previousStatus = merchants.find((m) => m.id === id)?.status ?? "suspendu";
       await api.put(`/admin/commercants/${id}/reactiver`);
-      setMerchants((prev) => prev.map((m) => m.id === id ? { ...m, status: "actif" } : m));
-      if (selectedMerchant?.id === id) setSelectedMerchant((prev) => prev ? { ...prev, status: "actif" } : null);
+      setMerchants((prev) => prev.map((m) => m.id === id ? { ...m, status: "actif", statut: "actif" } : m));
+      setAdminStats((prev) => moveStatusCount(prev, previousStatus, "actif"));
+      if (selectedMerchant?.id === id) setSelectedMerchant((prev) => prev ? { ...prev, status: "actif", statut: "actif" } : null);
       showToast("Compte réactivé avec succès.", "success");
     } catch {
       showToast("Erreur lors de la réactivation.", "error");
@@ -177,12 +224,7 @@ export default function AdminMerchantsPage() {
     });
   }, [merchants, searchTerm, filterVille, filterOp, filterStatus]);
 
-  const stats = {
-    total:     merchants.length,
-    actifs:    merchants.filter((m) => m.status === "actif").length,
-    attente:   merchants.filter((m) => m.status === "attente").length,
-    suspendus: merchants.filter((m) => m.status === "suspendu").length,
-  };
+  const stats = adminStats;
 
   const adminInitials = adminUser
     ? `${(adminUser.prenom ?? "A").charAt(0)}${(adminUser.nom ?? "D").charAt(0)}`.toUpperCase()
@@ -209,11 +251,9 @@ export default function AdminMerchantsPage() {
           <button onClick={() => navigate("/admin/merchants")}
             className="flex w-full items-center gap-2.5 rounded-md bg-white/10 px-2.5 py-2 text-left font-medium text-white">
             <span>◉</span> Commerçants
-            {stats.attente > 0 && (
-              <span className="ml-auto rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-semibold text-red-700">
-                {stats.attente}
-              </span>
-            )}
+            <span className="ml-auto rounded-full bg-green-100 px-1.5 py-0.5 text-[9px] font-semibold text-green-700">
+              {stats.total}
+            </span>
           </button>
           <button className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-blue-100 hover:bg-white/10">
             <span>∿</span> Transactions
@@ -269,7 +309,7 @@ export default function AdminMerchantsPage() {
             <div className="rounded-lg border border-gray-200 bg-white p-3">
               <p className="mb-1 text-[11px] uppercase tracking-wide text-gray-500">Total commerçants</p>
               <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
-              <span className="mt-1 inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-600">inscrits</span>
+              <span className="mt-1 inline-flex rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">inscrits</span>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-3">
               <p className="mb-1 text-[11px] uppercase tracking-wide text-gray-500">Actifs</p>

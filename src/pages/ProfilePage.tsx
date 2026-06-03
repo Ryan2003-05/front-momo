@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import MerchantLayout from "../components/MerchantLayout";
+import { Pencil, Plus, Power, Save, X } from "lucide-react";
 import api from "../api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,6 +40,12 @@ type PasswordVisibility = {
   confirm: boolean;
 };
 
+type AccountForm = {
+  operateurNom: string;
+  number: string;
+  active: boolean;
+};
+
 type DashboardStats = {
   stats: { total: number; reussies: number; volume: number; taux_succes: number };
   solde_total: string;
@@ -62,6 +69,32 @@ const opLabels: Record<string, string> = {
   Celtiis: "Celtiis",
 };
 
+const operators = ["MTN", "Moov", "Celtiis"];
+
+function emptyAccountForm(operateurNom = ""): AccountForm {
+  return { operateurNom, number: "", active: true };
+}
+
+function mapCompteToAccount(co: {
+  id: string;
+  numero: string;
+  actif: boolean;
+  operateur: { nom: string };
+}): AccountInfo {
+  return {
+    id: co.id,
+    label: opLabels[co.operateur.nom] ?? co.operateur.nom,
+    number: co.numero,
+    colorClass: opColors[co.operateur.nom] ?? "bg-gray-400",
+    active: co.actif,
+    operateurNom: co.operateur.nom,
+  };
+}
+
+function sortAccounts(comptes: AccountInfo[]) {
+  return [...comptes].sort((a, b) => operators.indexOf(a.operateurNom) - operators.indexOf(b.operateurNom));
+}
+
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -70,6 +103,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  const [savingAccountId, setSavingAccountId] = useState<string | null>(null);
+  const [accountForm, setAccountForm] = useState<AccountForm>(() => emptyAccountForm(operators[0]));
 
   const [personal, setPersonal] = useState<PersonalInfo>({
     firstName: "", lastName: "", phone: "", email: "",
@@ -101,10 +137,6 @@ export default function ProfilePage() {
           api.get("/commercant/profil"),
           api.get("/dashboard?periode=tout"),
         ]);
-        console.log(
-          JSON.stringify(profilRes.data, null, 2)
-        );
-
         const c = profilRes.data.commercant;
         const u = c.user;
 
@@ -130,18 +162,8 @@ export default function ProfilePage() {
         }
 
         const compteOperateurs = c.compte_operateurs ?? c.compteOperateurs ?? [];
-        const comptesData: AccountInfo[] = compteOperateurs.map((co: {
-          id: string; numero: string; actif: boolean;
-          operateur: { nom: string };
-        }) => ({
-          id: co.id,
-          label: opLabels[co.operateur.nom] ?? co.operateur.nom,
-          number: co.numero,
-          colorClass: opColors[co.operateur.nom] ?? "bg-gray-400",
-          active: co.actif,
-          operateurNom: co.operateur.nom,
-        }));
-        setAccounts(comptesData);
+        const comptesData: AccountInfo[] = compteOperateurs.map(mapCompteToAccount);
+        setAccounts(sortAccounts(comptesData));
         setStats(dashRes.data);
 
       } catch {
@@ -175,6 +197,126 @@ export default function ProfilePage() {
   }
   function togglePasswordField(field: keyof PasswordVisibility) {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
+  }
+
+  function getAccountError(err: unknown, fallback: string) {
+    const error = err as { response?: { data?: { message?: string } } };
+    return error.response?.data?.message || fallback;
+  }
+
+  function getAccountOperatorOptions(accountId: string | null = editingAccountId) {
+    return operators.filter((op) => !accounts.some((a) => a.operateurNom === op && a.id !== accountId));
+  }
+
+  function startAddAccount() {
+    if (accounts.length >= 3) {
+      showToast("Maximum 3 comptes mobile money.");
+      return;
+    }
+
+    const firstAvailable = getAccountOperatorOptions("new")[0];
+    if (!firstAvailable) {
+      showToast("Tous les opérateurs sont déjà configurés.");
+      return;
+    }
+
+    setEditingAccountId("new");
+    setAccountForm(emptyAccountForm(firstAvailable));
+  }
+
+  function startEditAccount(account: AccountInfo) {
+    setEditingAccountId(account.id);
+    setAccountForm({
+      operateurNom: account.operateurNom,
+      number: account.number,
+      active: account.active,
+    });
+  }
+
+  function cancelAccountForm() {
+    setEditingAccountId(null);
+    setAccountForm(emptyAccountForm(operators[0]));
+  }
+
+  function handleAccountFormChange(field: keyof AccountForm, value: string | boolean) {
+    setAccountForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function countActiveAfterSave(currentId: string | null, active: boolean) {
+    const existingActive = accounts.reduce((count, account) => {
+      if (account.id === currentId) return count + (active ? 1 : 0);
+      return count + (account.active ? 1 : 0);
+    }, 0);
+
+    return currentId ? existingActive : existingActive + (active ? 1 : 0);
+  }
+
+  async function handleSaveAccount() {
+    if (!editingAccountId) return;
+
+    const isNew = editingAccountId === "new";
+    const currentId = isNew ? null : editingAccountId;
+    const numero = accountForm.number.trim();
+
+    if (!accountForm.operateurNom) { showToast("Choisissez un opérateur."); return; }
+    if (!numero) { showToast("Entrez le numéro mobile money."); return; }
+    if (isNew && accounts.length >= 3) { showToast("Maximum 3 comptes mobile money."); return; }
+
+    const duplicate = accounts.some((a) => a.operateurNom === accountForm.operateurNom && a.id !== currentId);
+    if (duplicate) { showToast("Cet opérateur est déjà configuré."); return; }
+
+    if (countActiveAfterSave(currentId, accountForm.active) < 1) {
+      showToast("Vous devez garder au moins 1 compte actif.");
+      return;
+    }
+
+    setSavingAccountId(editingAccountId);
+    try {
+      const payload = {
+        operateur_nom: accountForm.operateurNom,
+        numero,
+        actif: accountForm.active,
+      };
+
+      if (isNew) {
+        const response = await api.post<{ compte: Parameters<typeof mapCompteToAccount>[0] }>("/commercant/comptes-operateurs", payload);
+        const saved = mapCompteToAccount(response.data.compte);
+        setAccounts((prev) => sortAccounts([...prev, saved]));
+        showToast("Compte mobile money ajouté");
+      } else {
+        const response = await api.put<{ compte: Parameters<typeof mapCompteToAccount>[0] }>(`/commercant/comptes-operateurs/${editingAccountId}`, payload);
+        const saved = mapCompteToAccount(response.data.compte);
+        setAccounts((prev) => sortAccounts(prev.map((a) => a.id === saved.id ? saved : a)));
+        showToast("Compte mobile money mis à jour");
+      }
+
+      cancelAccountForm();
+    } catch (err) {
+      showToast(getAccountError(err, "Erreur lors de la sauvegarde du compte."));
+    } finally {
+      setSavingAccountId(null);
+    }
+  }
+
+  async function handleToggleAccount(account: AccountInfo) {
+    if (account.active && accounts.filter((a) => a.active).length <= 1) {
+      showToast("Vous devez garder au moins 1 compte actif.");
+      return;
+    }
+
+    setSavingAccountId(account.id);
+    try {
+      const response = await api.put<{ compte: Parameters<typeof mapCompteToAccount>[0] }>(`/commercant/comptes-operateurs/${account.id}`, {
+        actif: !account.active,
+      });
+      const saved = mapCompteToAccount(response.data.compte);
+      setAccounts((prev) => sortAccounts(prev.map((a) => a.id === saved.id ? saved : a)));
+      showToast(saved.active ? "Compte activé" : "Compte désactivé");
+    } catch (err) {
+      showToast(getAccountError(err, "Erreur lors du changement de statut."));
+    } finally {
+      setSavingAccountId(null);
+    }
   }
 
   // Sauvegarder le profil
@@ -396,31 +538,103 @@ export default function ProfilePage() {
 
             {/* Comptes mobile money */}
             <section className="rounded-xl border border-gray-200 bg-white p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-gray-900">Comptes mobile money</p>
-                <span className="text-xs text-gray-500">{accounts.filter((a) => a.active).length} / {accounts.length} actifs</span>
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Comptes mobile money</p>
+                  <p className="mt-1 text-xs text-gray-500">Maximum 3 comptes, au moins 1 actif.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">{accounts.filter((a) => a.active).length} / {accounts.length} actifs</span>
+                  <button type="button" onClick={startAddAccount} disabled={accounts.length >= 3 || Boolean(editingAccountId)}
+                    title="Ajouter un compte"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-green-100 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-50">
+                    <Plus size={14} />
+                    Ajouter
+                  </button>
+                </div>
               </div>
-              <div className="space-y-3">
-                {accounts.map((account) => (
-                  <div key={account.id} className="rounded-2xl border border-gray-200">
-                    <div className="flex items-center gap-3 border-b border-gray-200 bg-slate-50 px-4 py-3">
-                      <div className={`${account.colorClass} flex h-9 w-14 items-center justify-center rounded-xl text-[10px] font-semibold text-white`}>
-                        {account.operateurNom.slice(0, 3).toUpperCase()}
-                      </div>
-                      <p className="text-sm font-semibold text-gray-900">{account.label}</p>
-                      <span className={`ml-auto rounded-full px-3 py-1 text-[10px] font-semibold ${account.active ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
-                        {account.active ? "Actif" : "Inactif"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-700">
-                      <span>{account.number}</span>
-                      <button type="button" onClick={() => showToast(`Numéro ${account.label} modifié`)}
-                        className="text-xs font-semibold text-green-700 hover:underline">
-                        Modifier le numéro
-                      </button>
-                    </div>
+
+              {editingAccountId && (
+                <div className="mb-4 rounded-2xl border border-green-100 bg-green-50/60 p-4">
+                  <div className="grid gap-3 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)_auto] md:items-end">
+                    <label className="block">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Opérateur</span>
+                      <select value={accountForm.operateurNom}
+                        onChange={(e) => handleAccountFormChange("operateurNom", e.target.value)}
+                        className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
+                        {getAccountOperatorOptions(editingAccountId).map((op) => (
+                          <option key={op} value={op}>{opLabels[op] ?? op}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Numéro</span>
+                      <input type="tel" value={accountForm.number} placeholder="Ex : 97000000"
+                        onChange={(e) => handleAccountFormChange("number", e.target.value)}
+                        className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
+                    </label>
+                    <label className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700">
+                      <input type="checkbox" checked={accountForm.active}
+                        onChange={(e) => handleAccountFormChange("active", e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
+                      Actif
+                    </label>
                   </div>
-                ))}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onClick={handleSaveAccount} disabled={savingAccountId === editingAccountId}
+                      className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60">
+                      <Save size={14} />
+                      {savingAccountId === editingAccountId ? "Enregistrement..." : "Enregistrer"}
+                    </button>
+                    <button type="button" onClick={cancelAccountForm} disabled={savingAccountId === editingAccountId}
+                      className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
+                      <X size={14} />
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {accounts.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-500">
+                    Aucun compte mobile money configuré.
+                  </div>
+                ) : accounts.map((account) => {
+                  const isBusy = savingAccountId === account.id;
+                  return (
+                    <div key={account.id} className="rounded-2xl border border-gray-200">
+                      <div className="flex items-center gap-3 border-b border-gray-200 bg-slate-50 px-4 py-3">
+                        <div className={`${account.colorClass} flex h-9 w-14 items-center justify-center rounded-xl text-[10px] font-semibold text-white`}>
+                          {account.operateurNom.slice(0, 3).toUpperCase()}
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900">{account.label}</p>
+                        <span className={`ml-auto rounded-full px-3 py-1 text-[10px] font-semibold ${account.active ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                          {account.active ? "Actif" : "Inactif"}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm text-gray-700">
+                        <span className="font-medium">{account.number}</span>
+                        <div className="flex items-center gap-2">
+                          <button type="button" onClick={() => startEditAccount(account)} disabled={Boolean(editingAccountId) || isBusy}
+                            title="Modifier"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50">
+                            <Pencil size={14} />
+                          </button>
+                          <button type="button" onClick={() => handleToggleAccount(account)} disabled={Boolean(editingAccountId) || isBusy}
+                            title={account.active ? "Désactiver" : "Activer"}
+                            className={`inline-flex h-8 w-8 items-center justify-center rounded-md border disabled:cursor-not-allowed disabled:opacity-50 ${
+                              account.active
+                                ? "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                                : "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
+                            }`}>
+                            <Power size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           </div>
