@@ -6,12 +6,14 @@ import api from "../api";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type TxStatus    = "SUCCESS" | "FAILED" | "EN_ATTENTE";
-type FilterStatus = "tous" | TxStatus;
+type TxDisplayStatus = TxStatus | "ANNULEE";
+type FilterStatus = "tous" | TxDisplayStatus;
 
 interface SessionPaiement {
   montant: string;
   libelle: string;
   type_paiement: string;
+  statut?: string;
   compte_operateur: { operateur: { nom: string } };
 }
 
@@ -45,22 +47,25 @@ const operatorBadgeClass: Record<string, string> = {
   Celtiis: "bg-purple-100 text-purple-800",
 };
 
-const statusBadgeClass: Record<TxStatus, string> = {
+const statusBadgeClass: Record<TxDisplayStatus, string> = {
   SUCCESS:    "bg-green-100 text-green-700",
   FAILED:     "bg-red-100 text-red-700",
   EN_ATTENTE: "bg-yellow-100 text-yellow-700",
+  ANNULEE:    "bg-gray-100 text-gray-700",
 };
 
-const statusLabel: Record<TxStatus, string> = {
+const statusLabel: Record<TxDisplayStatus, string> = {
   SUCCESS:    "Succès",
   FAILED:     "Échec",
   EN_ATTENTE: "En attente",
+  ANNULEE:    "Annulée",
 };
 
-const iconClass: Record<TxStatus, string> = {
+const iconClass: Record<TxDisplayStatus, string> = {
   SUCCESS:    "bg-green-100 text-green-700",
   FAILED:     "bg-red-100 text-red-700",
   EN_ATTENTE: "bg-yellow-100 text-yellow-700",
+  ANNULEE:    "bg-gray-100 text-gray-700",
 };
 
 function getOpCode(nom: string): string {
@@ -78,13 +83,18 @@ function formatDate(dateStr: string): { date: string; time: string } {
   };
 }
 
-const filterStatusOptions: FilterStatus[] = ["tous", "SUCCESS", "FAILED", "EN_ATTENTE"];
+const filterStatusOptions: FilterStatus[] = ["tous", "SUCCESS", "FAILED", "ANNULEE", "EN_ATTENTE"];
 const filterStatusLabels: Record<FilterStatus, string> = {
   tous:       "Tous",
   SUCCESS:    "Réussis",
   FAILED:     "Échoués",
+  ANNULEE:    "Annulées",
   EN_ATTENTE: "En attente",
 };
+
+function getDisplayStatus(tx: Transaction): TxDisplayStatus {
+  return tx.session_paiement.statut === "ANNULEE" ? "ANNULEE" : tx.statut;
+}
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
@@ -140,18 +150,20 @@ export default function HistoriquePage() {
         || tx.session_paiement.libelle.toLowerCase().includes(q);
       const matchType = !filterType || tx.session_paiement.type_paiement === filterType;
       const matchOp   = !filterOp   || nomOp === filterOp;
-      return matchSearch && matchType && matchOp;
+      const matchStatus = filterStatus === "tous" || getDisplayStatus(tx) === filterStatus;
+      return matchSearch && matchType && matchOp && matchStatus;
     });
-  }, [transactions, searchTerm, filterType, filterOp]);
+  }, [transactions, searchTerm, filterType, filterOp, filterStatus]);
 
   // Stats
   const stats = useMemo(() => {
     const succes = transactions.filter((t) => t.statut === "SUCCESS");
     const echecs = transactions.filter((t) => t.statut === "FAILED");
+    const annulees = transactions.filter((t) => getDisplayStatus(t) === "ANNULEE");
     const volume = succes.reduce((s, t) => s + Number(t.session_paiement.montant), 0);
     const taux   = transactions.length > 0 ? Math.round((succes.length / transactions.length) * 100) : 0;
     const tauxE  = transactions.length > 0 ? Math.round((echecs.length / transactions.length) * 100) : 0;
-    return { total: transactions.length, volume, succes: succes.length, echec: echecs.length, taux, tauxE };
+    return { total: transactions.length, volume, succes: succes.length, echec: echecs.length, annulees: annulees.length, taux, tauxE };
   }, [transactions]);
 
   // Télécharger le reçu PDF
@@ -279,12 +291,13 @@ export default function HistoriquePage() {
                 ) : filtered.map((tx) => {
                   const nomOp = tx.session_paiement.compte_operateur.operateur.nom;
                   const { date, time } = formatDate(tx.created_at);
+                  const displayStatus = getDisplayStatus(tx);
                   return (
                     <tr key={tx.id} className="cursor-pointer border-b border-gray-100 hover:bg-gray-50"
                       onClick={() => setSelectedTx(tx)}>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-semibold shrink-0 ${iconClass[tx.statut]}`}>
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-semibold shrink-0 ${iconClass[displayStatus]}`}>
                             {getOpCode(nomOp)}
                           </div>
                           <div className="min-w-0">
@@ -305,8 +318,8 @@ export default function HistoriquePage() {
                         +{Number(tx.session_paiement.montant).toLocaleString("fr-FR")} F
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${statusBadgeClass[tx.statut]}`}>
-                          {statusLabel[tx.statut]}
+                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${statusBadgeClass[displayStatus]}`}>
+                          {statusLabel[displayStatus]}
                         </span>
                       </td>
                       <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
@@ -333,6 +346,7 @@ export default function HistoriquePage() {
 
       {/* Panneau détail */}
       {selectedTx && (() => {
+        const displayStatus = getDisplayStatus(selectedTx);
         const nomOp = selectedTx.session_paiement.compte_operateur.operateur.nom;
         const { date, time } = formatDate(selectedTx.created_at);
         return (
@@ -345,15 +359,16 @@ export default function HistoriquePage() {
               </button>
             </div>
             <div className={`rounded-xl p-4 text-center text-2xl font-semibold mb-2 ${
-              selectedTx.statut === "SUCCESS" ? "bg-green-50 text-green-700"
-              : selectedTx.statut === "FAILED" ? "bg-red-50 text-red-700"
+              displayStatus === "SUCCESS" ? "bg-green-50 text-green-700"
+              : displayStatus === "FAILED" ? "bg-red-50 text-red-700"
+              : displayStatus === "ANNULEE" ? "bg-gray-50 text-gray-700"
               : "bg-yellow-50 text-yellow-700"
             }`}>
               +{Number(selectedTx.session_paiement.montant).toLocaleString("fr-FR")} F
             </div>
             <div className="text-center mb-4">
-              <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-semibold ${statusBadgeClass[selectedTx.statut]}`}>
-                {statusLabel[selectedTx.statut]}
+              <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-semibold ${statusBadgeClass[displayStatus]}`}>
+                {statusLabel[displayStatus]}
               </span>
             </div>
             <div className="space-y-3 text-sm">
