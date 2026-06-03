@@ -19,6 +19,13 @@ interface PushData {
 }
 
 const API = API_URL;
+const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
+const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
+
+function notifyTransactionsUpdated() {
+  window.dispatchEvent(new Event(TRANSACTIONS_UPDATED_EVENT));
+  localStorage.setItem(TRANSACTIONS_UPDATED_KEY, Date.now().toString());
+}
 
 const opConfig: Record<string, { bg: string; text: string; code: string; label: string }> = {
   MTN:    { bg: "#FFCC00", text: "#000", code: "MTN", label: "MTN MoMo" },
@@ -93,6 +100,7 @@ export default function PushClientPage() {
           if (timerRef.current) window.clearInterval(timerRef.current);
           setEtape("expire");
           setPush(null);
+          notifyTransactionsUpdated();
           return 0;
         }
         return prev - 1;
@@ -129,6 +137,7 @@ export default function PushClientPage() {
       }
       setPush(null);
       if (timerRef.current) window.clearInterval(timerRef.current);
+      notifyTransactionsUpdated();
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       setErrorMsg(error.response?.data?.message || "Erreur lors de la validation.");
@@ -150,6 +159,7 @@ export default function PushClientPage() {
       showToast("Paiement annulé.", "info");
       setPush(null);
       if (timerRef.current) window.clearInterval(timerRef.current);
+      notifyTransactionsUpdated();
     } catch {
       setErrorMsg("Erreur lors de l'annulation.");
     } finally {

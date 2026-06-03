@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import MerchantLayout from "../components/MerchantLayout";
 import Toast from "../components/Toast";
 import api from "../api";
@@ -91,6 +91,8 @@ const filterStatusLabels: Record<FilterStatus, string> = {
   ANNULEE:    "Annulées",
   EN_ATTENTE: "En attente",
 };
+const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
+const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
 
 function getDisplayStatus(tx: Transaction): TxDisplayStatus {
   return tx.session_paiement.statut === "ANNULEE" ? "ANNULEE" : tx.statut;
@@ -116,28 +118,46 @@ export default function HistoriquePage() {
     setToastType(type);
   }
 
+  const fetchTransactions = useCallback(async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filterPeriode) params.append("periode", filterPeriode);
+      if (filterStatus !== "tous") params.append("statut", filterStatus);
+      if (filterOp) params.append("operateur", filterOp);
+
+      const response = await api.get<{ transactions: PaginatedTransactions }>(
+        `/transactions?${params.toString()}`
+      );
+      setTransactions(response.data.transactions.data);
+    } catch {
+      showToast("Impossible de charger les transactions.", "error");
+    } finally {
+      if (showLoader) setLoading(false);
+    }
+  }, [filterPeriode, filterStatus, filterOp]);
+
   // Charger les transactions
   useEffect(() => {
-    const fetchTransactions = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (filterPeriode) params.append("periode", filterPeriode);
-        if (filterStatus !== "tous") params.append("statut", filterStatus);
-        if (filterOp) params.append("operateur", filterOp);
-
-        const response = await api.get<{ transactions: PaginatedTransactions }>(
-          `/transactions?${params.toString()}`
-        );
-        setTransactions(response.data.transactions.data);
-      } catch {
-        showToast("Impossible de charger les transactions.", "error");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTransactions();
-  }, [filterPeriode, filterStatus, filterOp]);
+  }, [fetchTransactions]);
+
+  useEffect(() => {
+    const refresh = () => fetchTransactions(false);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === TRANSACTIONS_UPDATED_KEY) refresh();
+    };
+
+    window.addEventListener(TRANSACTIONS_UPDATED_EVENT, refresh);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", refresh);
+
+    return () => {
+      window.removeEventListener(TRANSACTIONS_UPDATED_EVENT, refresh);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [fetchTransactions]);
 
   // Filtre local
   const filtered = useMemo(() => {

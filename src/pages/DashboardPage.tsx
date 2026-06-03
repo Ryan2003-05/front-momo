@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MerchantLayout from "../components/MerchantLayout";
 import Toast from "../components/Toast";
@@ -9,6 +9,10 @@ import api from "../api";
 type TxStatus = "SUCCESS" | "FAILED" | "EN_ATTENTE";
 type TxDisplayStatus = TxStatus | "ANNULEE";
 type Periode  = "jour" | "semaine" | "mois";
+
+const opColors: Record<string, string> = { MTN: "#f59e0b", Moov: "#2563eb", Celtiis: "#7c3aed" };
+const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
+const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
 
 interface Transaction {
   id: string;
@@ -96,31 +100,47 @@ export default function DashboardPage() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType]       = useState<"success" | "error" | "info">("error");
 
-  function showToast(message: string, type: "success" | "error" | "info" = "error") {
+  const showToast = useCallback((message: string, type: "success" | "error" | "info" = "error") => {
     setToastMessage(message);
     setToastType(type);
-  }
+  }, []);
+
+  const fetchDashboard = useCallback(async () => {
+    try {
+      const response = await api.get(`/dashboard?periode=${periode}`);
+      setData(response.data);
+    } catch (error) {
+      console.error("Dashboard Error:", error);
+      showToast("Impossible de charger le tableau de bord.", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [periode, showToast]);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      setLoading(true);
-      try {
-        console.log("TOKEN =", localStorage.getItem("token"));
+    const timeoutId = window.setTimeout(() => {
+      fetchDashboard();
+    }, 0);
 
-        const response = await api.get(`/dashboard?periode=${periode}`);
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchDashboard]);
 
-        console.log("DASHBOARD RESPONSE =", response.data);
-
-        setData(response.data);
-      } catch (error) {
-        console.error("Dashboard Error:", error);
-        showToast("Impossible de charger le tableau de bord.", "error");
-      } finally {
-        setLoading(false);
-      }
+  useEffect(() => {
+    const refresh = () => fetchDashboard();
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === TRANSACTIONS_UPDATED_KEY) refresh();
     };
-    fetchDashboard();
-  }, [periode]);
+
+    window.addEventListener(TRANSACTIONS_UPDATED_EVENT, refresh);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", refresh);
+
+    return () => {
+      window.removeEventListener(TRANSACTIONS_UPDATED_EVENT, refresh);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [fetchDashboard]);
 
   const maxY = useMemo(() => {
     if (!data) return 1;
@@ -129,7 +149,6 @@ export default function DashboardPage() {
 
   const operateurEntries = data ? Object.entries(data.par_operateur) : [];
   const totalOp = operateurEntries.reduce((s, [, v]) => s + v.count, 0);
-  const opColors: Record<string, string> = { MTN: "#f59e0b", Moov: "#2563eb", Celtiis: "#7c3aed" };
 
   let cumul = 0;
   const donutSegments = operateurEntries.map(([nom, val]) => {

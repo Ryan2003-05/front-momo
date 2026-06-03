@@ -7,7 +7,7 @@ import { API_URL } from "../config";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type PaymentStatus = "EN_ATTENTE" | "PAYEE" | "EXPIREE" | "ANNULEE";
+type PaymentStatus = "EN_ATTENTE" | "PAYEE" | "FAILED" | "EXPIREE" | "ANNULEE";
 
 type OperateurAccepte = {
   nom: string;
@@ -48,6 +48,13 @@ const opLabels: Record<string, string> = {
 const MTN_PREFIXES    = [42,46,50,51,52,53,54,56,57,59,61,62,66,67,69,90,91,96,97];
 const MOOV_PREFIXES   = [55,58,60,63,64,65,68,94,95,98];
 const Celtiis_PREFIXES = [40,41,43,44,47];
+const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
+const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
+
+function notifyTransactionsUpdated() {
+  window.dispatchEvent(new Event(TRANSACTIONS_UPDATED_EVENT));
+  localStorage.setItem(TRANSACTIONS_UPDATED_KEY, Date.now().toString());
+}
 
 function detecterOperateur(numero: string): string | null {
   const clean   = numero.replace(/[\s+-]/g, "").replace(/^(229|01229|01)/, "");
@@ -79,6 +86,7 @@ export default function GatewayPage() {
   const [toastMessage, setToastMessage]     = useState("");
   const [toastType, setToastType]           = useState<"success" | "error" | "info">("error");
   const timerRef = useRef<number | null>(null);
+  const finalStatusNotifiedRef = useRef(false);
 
   function showToast(message: string, type: "success" | "error" | "info" = "error") {
     setToastMessage(message);
@@ -100,12 +108,24 @@ export default function GatewayPage() {
         const statut = error.response?.data?.statut;
         if (statut === "EXPIREE")       setStatus("EXPIREE");
         else if (statut === "PAYEE")    setStatus("PAYEE");
+        else if (statut === "FAILED")   setStatus("FAILED");
         else if (statut === "ANNULEE")  setStatus("ANNULEE");
         else                            setStatus("EXPIREE");
       }
     };
     fetchSession();
   }, [sessionId]);
+
+  useEffect(() => {
+    if (status === "EN_ATTENTE" || finalStatusNotifiedRef.current) return;
+
+    finalStatusNotifiedRef.current = true;
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    notifyTransactionsUpdated();
+  }, [status]);
 
   // Timer
   useEffect(() => {
@@ -131,7 +151,10 @@ export default function GatewayPage() {
 
   async function handleConfirm() {
     if (!canConfirm || !sessionId) return;
-    if (timerRef.current) window.clearInterval(timerRef.current);
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setIsProcessing(true);
     try {
       const response = await axios.post(`${API_URL}/gateway/${sessionId}/payer`, {
@@ -145,8 +168,8 @@ export default function GatewayPage() {
         setStatus("PAYEE");
         showToast("Paiement confirmé avec succès !", "success");
       } else {
+        setStatus("FAILED");
         showToast("Paiement échoué. Solde insuffisant ou erreur réseau.", "error");
-        setIsProcessing(false);
       }
     } catch (err) {
       const error = err as { response?: { data?: { message?: string; statut?: string } } };
@@ -162,7 +185,10 @@ export default function GatewayPage() {
 
   async function handleCancel() {
     if (!sessionId) return;
-    if (timerRef.current) window.clearInterval(timerRef.current);
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     try {
       await axios.post(`${API_URL}/gateway/${sessionId}/annuler`);
     } catch { /* session peut déjà être expirée */ }
@@ -308,15 +334,23 @@ export default function GatewayPage() {
               />
             )}
 
-            {/* Annulé / Expiré */}
-            {(status === "ANNULEE" || status === "EXPIREE") && (
+            {/* Échec / Annulé / Expiré */}
+            {(status === "FAILED" || status === "ANNULEE" || status === "EXPIREE") && (
               <StatePanel
                 icon={<XCircle className="h-10 w-10 text-red-600" />}
-                title={status === "EXPIREE" ? "Session expirée" : "Paiement annulé"}
+                title={
+                  status === "EXPIREE"
+                    ? "Session expirée"
+                    : status === "FAILED"
+                      ? "Paiement échoué"
+                      : "Paiement annulé"
+                }
                 description={
                   status === "EXPIREE"
                     ? "Le délai de paiement est terminé. Demandez un nouveau lien au commerçant."
-                    : "Cette transaction n'a pas été finalisée."
+                    : status === "FAILED"
+                      ? "La transaction n'a pas pu être finalisée."
+                      : "Cette transaction n'a pas été finalisée."
                 }
               />
             )}

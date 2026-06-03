@@ -7,6 +7,7 @@ import { gatewayUrl } from "../config";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type PaymentType = "qr" | "lien" | "ussd";
+type PaymentFinalStatus = "PAYEE" | "FAILED" | "ANNULEE" | "EXPIREE";
 
 type Article = {
   id: number;
@@ -111,6 +112,48 @@ const typeNames: Record<PaymentType, string> = {
   ussd: "Push USSD",
 };
 
+const finalStatusView: Record<PaymentFinalStatus, {
+  box: string;
+  icon: string;
+  title: string;
+  titleClass: string;
+  message: string;
+  messageClass: string;
+}> = {
+  PAYEE: {
+    box: "border-green-200 bg-green-50",
+    icon: "bg-green-500",
+    title: "Paiement reçu !",
+    titleClass: "text-green-700",
+    message: "Mise à jour en cours...",
+    messageClass: "text-green-600",
+  },
+  FAILED: {
+    box: "border-red-200 bg-red-50",
+    icon: "bg-red-500",
+    title: "Paiement échoué",
+    titleClass: "text-red-700",
+    message: "La transaction a été enregistrée.",
+    messageClass: "text-red-600",
+  },
+  ANNULEE: {
+    box: "border-gray-200 bg-gray-50",
+    icon: "bg-gray-500",
+    title: "Paiement annulé",
+    titleClass: "text-gray-700",
+    message: "La transaction a été enregistrée.",
+    messageClass: "text-gray-600",
+  },
+  EXPIREE: {
+    box: "border-yellow-200 bg-yellow-50",
+    icon: "bg-yellow-500",
+    title: "Session expirée",
+    titleClass: "text-yellow-700",
+    message: "La transaction a été enregistrée.",
+    messageClass: "text-yellow-600",
+  },
+};
+
 const opColors: Record<string, string> = {
   MTN: "bg-amber-500",
   Moov: "bg-blue-600",
@@ -122,6 +165,14 @@ const opCodes: Record<string, string> = {
   Moov: "MOV",
   Celtiis: "CEL",
 };
+
+const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
+const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
+
+function notifyTransactionsUpdated() {
+  window.dispatchEvent(new Event(TRANSACTIONS_UPDATED_EVENT));
+  localStorage.setItem(TRANSACTIONS_UPDATED_KEY, Date.now().toString());
+}
 
 function formatMoney(value: number) {
   return `${value.toLocaleString("fr-FR")} FCFA`;
@@ -152,7 +203,7 @@ export default function NewPaymentPage() {
   const [toastType, setToastType] = useState<"success" | "error" | "info">("error");
   const timerRef = useRef<number | null>(null);
   const [, setSessionId] = useState<string | null>(null);
-  const [paiementStatut, setPaiementStatut] = useState<"EN_ATTENTE" | "PAYEE" | "FAILED" | "ANNULEE" | "EXPIREE" | null>(null);
+  const [paiementStatut, setPaiementStatut] = useState<PaymentFinalStatus | null>(null);
   const pollSessionRef = useRef<number | null>(null);
 
   function showToast(message: string, type: "success" | "error" | "info" = "error") {
@@ -242,10 +293,12 @@ export default function NewPaymentPage() {
         if (sessionTerminee) {
           if (timerRef.current) {
             window.clearInterval(timerRef.current);
+            timerRef.current = null;
           }
 
           if (pollSessionRef.current) {
             window.clearInterval(pollSessionRef.current);
+            pollSessionRef.current = null;
           }
 
           setPaiementStatut(
@@ -274,6 +327,8 @@ export default function NewPaymentPage() {
             notificationMessage,
             statut === "PAYEE" ? "success" : "info"
           );
+
+          notifyTransactionsUpdated();
 
           window.setTimeout(() => {
             setResult(null);
@@ -556,9 +611,11 @@ export default function NewPaymentPage() {
             </div>
 
             {/* Paiement validé */}
-            {paiementStatut ? (
-              <div className="mt-3 rounded-xl border border-green-200 bg-green-50 p-4 text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-500">
+            {paiementStatut ? (() => {
+              const statusView = finalStatusView[paiementStatut];
+              return (
+              <div className={`mt-3 rounded-xl border p-4 text-center ${statusView.box}`}>
+                <div className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full ${statusView.icon}`}>
                   <svg
                     viewBox="0 0 24 24"
                     className="h-5 w-5"
@@ -566,19 +623,32 @@ export default function NewPaymentPage() {
                     stroke="white"
                     strokeWidth="2.5"
                   >
-                    <polyline points="20 6 9 17 4 12" />
+                    {paiementStatut === "PAYEE" ? (
+                      <polyline points="20 6 9 17 4 12" />
+                    ) : paiementStatut === "EXPIREE" ? (
+                      <>
+                        <circle cx="12" cy="12" r="9" />
+                        <polyline points="12 7 12 12 15 14" />
+                      </>
+                    ) : (
+                      <>
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </>
+                    )}
                   </svg>
                 </div>
 
-                <p className="text-sm font-bold text-green-700">
-                  Paiement reçu !
+                <p className={`text-sm font-bold ${statusView.titleClass}`}>
+                  {statusView.title}
                 </p>
 
-                <p className="mt-1 text-[11px] text-green-600">
-                  Redirection en cours...
+                <p className={`mt-1 text-[11px] ${statusView.messageClass}`}>
+                  {statusView.message}
                 </p>
               </div>
-            ) : (
+              );
+            })() : (
               <>
                 {/* QR Code */}
                 {currentType === "qr" && (
