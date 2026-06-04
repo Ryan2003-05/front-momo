@@ -3,6 +3,13 @@ import MerchantLayout from "../components/MerchantLayout";
 import Toast from "../components/Toast";
 import api from "../api";
 import { gatewayUrl } from "../config";
+import {
+  MOBILE_MONEY_PLACEHOLDER,
+  OPERATOR_CODES,
+  formatMobileMoneyNumber,
+  normalizeMobileMoneyNumber,
+  operatorLogoClass,
+} from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -157,18 +164,6 @@ const finalStatusView: Record<PaymentFinalStatus, {
     message: "La transaction a été enregistrée.",
     messageClass: "text-yellow-600",
   },
-};
-
-const opColors: Record<string, string> = {
-  MTN: "bg-amber-500",
-  Moov: "bg-blue-600",
-  Celtiis: "bg-purple-600",
-};
-
-const opCodes: Record<string, string> = {
-  MTN: "MTN",
-  Moov: "MOV",
-  Celtiis: "CEL",
 };
 
 const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
@@ -419,7 +414,7 @@ export default function NewPaymentPage() {
         produits: produits.length > 0 ? produits : undefined,
       };
 
-      if (currentType === "ussd") body.numero_client = ussdNumber;
+      if (currentType === "ussd") body.numero_client = normalizeMobileMoneyNumber(ussdNumber);
 
       const response = await api.post<SessionResult>("/paiement/session", body);
       setResult(response.data);
@@ -448,7 +443,7 @@ export default function NewPaymentPage() {
       // USSD — envoyer le push
       if (currentType === "ussd") {
         const sessionId = response.data.session.id;
-        const pushResponse = await api.post<PushResponse>(`/gateway/${sessionId}/push`, { numero_client: ussdNumber });
+        const pushResponse = await api.post<PushResponse>(`/gateway/${sessionId}/push`, { numero_client: normalizeMobileMoneyNumber(ussdNumber) });
         setPushClientUrl(pushResponse.data.push_url ?? "");
         setPushDeliveryStatus(pushResponse.data.statut_envoi ?? "");
         setPushReference(pushResponse.data.push_reference ?? "");
@@ -505,8 +500,8 @@ export default function NewPaymentPage() {
             {currentType === "ussd" && (
               <label className="mt-2.5 block">
                 <span className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-600">Numéro du client</span>
-                <input type="tel" value={ussdNumber} onChange={(e) => setUssdNumber(e.target.value)}
-                  placeholder="01 97 00 00 00"
+                <input type="tel" value={ussdNumber} onChange={(e) => setUssdNumber(formatMobileMoneyNumber(e.target.value))}
+                  placeholder={MOBILE_MONEY_PLACEHOLDER}
                   className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-[13px] text-gray-900 outline-none focus:border-green-600" />
               </label>
             )}
@@ -531,8 +526,8 @@ export default function NewPaymentPage() {
                   <button key={c.id} type="button" onClick={() => setSelectedCompte(c.id)}
                     className={`flex items-center gap-2.5 rounded-md border px-3 py-2 text-left transition ${selectedCompte === c.id ? "border-green-600 bg-green-50" : "border-gray-200 bg-white hover:bg-gray-50"
                       }`}>
-                    <span className={`flex h-5 w-8 shrink-0 items-center justify-center rounded text-[9px] font-medium text-white ${opColors[c.operateur.nom] ?? "bg-gray-400"}`}>
-                      {opCodes[c.operateur.nom] ?? c.operateur.nom.slice(0, 3)}
+                    <span className={`flex h-5 w-8 shrink-0 items-center justify-center rounded text-[9px] font-medium text-white ${operatorLogoClass(c.operateur.nom)}`}>
+                      {OPERATOR_CODES[c.operateur.nom] ?? c.operateur.nom.slice(0, 3)}
                     </span>
                     <span className="text-[13px] text-gray-900">{c.operateur.nom} MoMo</span>
                     <span className="ml-auto text-[11px] text-gray-400">{c.numero}</span>

@@ -2,6 +2,14 @@
 import MerchantLayout from "../components/MerchantLayout";
 import { Pencil, Plus, Power, Save, X } from "lucide-react";
 import api from "../api";
+import {
+  MOBILE_MONEY_PLACEHOLDER,
+  OPERATOR_LABELS,
+  formatMobileMoneyNumber,
+  normalizeMobileMoneyNumber,
+  operatorBadgeClass,
+  operatorLogoClass,
+} from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,24 +59,6 @@ type DashboardStats = {
   solde_total: string;
 };
 
-const opColors: Record<string, string> = {
-  MTN: "bg-amber-500",
-  Moov: "bg-blue-600",
-  Celtiis: "bg-purple-600",
-};
-
-const opBadge: Record<string, string> = {
-  MTN: "bg-amber-100 text-amber-800",
-  Moov: "bg-blue-100 text-blue-800",
-  Celtiis: "bg-purple-100 text-purple-800",
-};
-
-const opLabels: Record<string, string> = {
-  MTN: "MTN MoMo",
-  Moov: "Moov Money",
-  Celtiis: "Celtiis",
-};
-
 const operators = ["MTN", "Moov", "Celtiis"];
 
 function emptyAccountForm(operateurNom = ""): AccountForm {
@@ -83,9 +73,9 @@ function mapCompteToAccount(co: {
 }): AccountInfo {
   return {
     id: co.id,
-    label: opLabels[co.operateur.nom] ?? co.operateur.nom,
-    number: co.numero,
-    colorClass: opColors[co.operateur.nom] ?? "bg-gray-400",
+    label: OPERATOR_LABELS[co.operateur.nom] ?? co.operateur.nom,
+    number: formatMobileMoneyNumber(co.numero),
+    colorClass: operatorLogoClass(co.operateur.nom),
     active: co.actif,
     operateurNom: co.operateur.nom,
   };
@@ -143,7 +133,7 @@ export default function ProfilePage() {
         setPersonal({
           firstName: c.prenom,
           lastName: c.nom,
-          phone: c.telephone,
+          phone: formatMobileMoneyNumber(c.telephone),
           email: u?.email ?? "",
         });
 
@@ -274,7 +264,7 @@ export default function ProfilePage() {
     try {
       const payload = {
         operateur_nom: accountForm.operateurNom,
-        numero,
+        numero: normalizeMobileMoneyNumber(numero),
         actif: accountForm.active,
       };
 
@@ -326,7 +316,7 @@ export default function ProfilePage() {
       await api.put("/commercant/profil", {
         nom: personal.lastName,
         prenom: personal.firstName,
-        telephone: personal.phone,
+        telephone: normalizeMobileMoneyNumber(personal.phone),
       });
       setEditingSection("none");
       setInitials(`${personal.firstName.charAt(0)}${personal.lastName.charAt(0)}`.toUpperCase());
@@ -407,7 +397,7 @@ export default function ProfilePage() {
               <p className="mt-1 text-sm text-gray-500">{commerce.shopName} · {commerce.city} · Membre depuis {memberSince}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {accounts.map((a) => (
-                  <span key={a.id} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${opBadge[a.operateurNom] ?? "bg-gray-100 text-gray-700"}`}>
+                  <span key={a.id} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${operatorBadgeClass(a.operateurNom)}`}>
                     {a.label}
                   </span>
                 ))}
@@ -449,7 +439,7 @@ export default function ProfilePage() {
                   {[
                     { label: "Prénom", value: personal.firstName },
                     { label: "Nom", value: personal.lastName },
-                    { label: "Téléphone", value: personal.phone },
+                    { label: "Téléphone", value: formatMobileMoneyNumber(personal.phone) },
                     { label: "Email", value: personal.email },
                   ].map(({ label, value }) => (
                     <div key={label}>
@@ -467,7 +457,7 @@ export default function ProfilePage() {
                   ]).map(({ label, field }) => (
                     <label key={field} className="block">
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</span>
-                      <input value={personal[field]} onChange={(e) => handlePersonalChange(field, e.target.value)}
+                      <input value={personal[field]} onChange={(e) => handlePersonalChange(field, field === "phone" ? formatMobileMoneyNumber(e.target.value) : e.target.value)}
                         className="mt-2 w-full rounded-2xl border border-gray-200 bg-slate-50 px-4 py-3 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
                     </label>
                   ))}
@@ -563,14 +553,14 @@ export default function ProfilePage() {
                         onChange={(e) => handleAccountFormChange("operateurNom", e.target.value)}
                         className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100">
                         {getAccountOperatorOptions(editingAccountId).map((op) => (
-                          <option key={op} value={op}>{opLabels[op] ?? op}</option>
+                          <option key={op} value={op}>{OPERATOR_LABELS[op] ?? op}</option>
                         ))}
                       </select>
                     </label>
                     <label className="block">
                       <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Numéro</span>
-                      <input type="tel" value={accountForm.number} placeholder="Ex : 97000000"
-                        onChange={(e) => handleAccountFormChange("number", e.target.value)}
+                      <input type="tel" value={accountForm.number} placeholder={MOBILE_MONEY_PLACEHOLDER}
+                        onChange={(e) => handleAccountFormChange("number", formatMobileMoneyNumber(e.target.value))}
                         className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100" />
                     </label>
                     <label className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700">

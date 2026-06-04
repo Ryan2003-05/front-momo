@@ -19,20 +19,20 @@ import {
 } from "lucide-react";
 
 const features = [
-  { icon: QrCode, title: "QR Code de proximite", description: "Le client scanne et paie en quelques secondes via Momo, Moov, Celtiis ou carte.", color: "from-emerald-500 to-emerald-600", shadow: "shadow-emerald-500/20" },
+  { icon: QrCode, title: "QR Code de proximite", description: "Le client scanne et paie en quelques secondes via Mtn, Moov, Celtiis.", color: "from-emerald-500 to-emerald-600", shadow: "shadow-emerald-500/20" },
   { icon: Link2, title: "Lien de paiement", description: "Partagez par WhatsApp ou SMS pour encaisser a distance, ou qu'il soit.", color: "from-blue-500 to-blue-600", shadow: "shadow-blue-500/20" },
-  { icon: Radio, title: "Push USSD", description: "Pour les telephones basiques : confirmation directe sur l'ecran GSM.", color: "from-amber-500 to-amber-600", shadow: "shadow-amber-500/20" },
+  { icon: Radio, title: "Push USSD", description: "Pour les telephones basiques et sans forfait internet : confirmation directe sur l'ecran GSM.", color: "from-amber-500 to-amber-600", shadow: "shadow-amber-500/20" },
   { icon: BarChart3, title: "Tableau de bord", description: "Suivez vos ventes par operateur, par jour, par statut. Sans effort.", color: "from-rose-500 to-rose-600", shadow: "shadow-rose-500/20" },
-  { icon: Search, title: "Tracabilite totale", description: "Chaque transaction est referencee et consultable a tout moment.", color: "from-orange-500 to-orange-600", shadow: "shadow-orange-500/20" },
-  { icon: Zap, title: "100 % automatique", description: "Statut mis a jour en temps reel, fini les fausses confirmations SMS.", color: "from-emerald-500 to-emerald-600", shadow: "shadow-emerald-500/20" },
-  { icon: Globe, title: "Multi-reseaux", description: "Compatible MTN MoMo, Moov Money, Celtiis, Glo, et bien d'autres.", color: "from-amber-500 to-amber-600", shadow: "shadow-amber-500/20" },
+  { icon: Search, title: "Tracabilite totale", description: "Chaque transaction est referencée et consultable a tout moment.", color: "from-orange-500 to-orange-600", shadow: "shadow-orange-500/20" },
+  { icon: Zap, title: "100 % automatique", description: "Statut mis à jour en temps réel. Fini les fausses confirmations SMS..", color: "from-emerald-500 to-emerald-600", shadow: "shadow-emerald-500/20" },
+  { icon: Globe, title: "Multi-reseaux", description: "Compatible MTN MoMo, Moov Money, Celtiis.", color: "from-amber-500 to-amber-600", shadow: "shadow-amber-500/20" },
 ];
 
 const testimonials = [
-  { stars: 5, text: "Depuis que j'utilise PayPME, mes clients paient en quelques secondes. Plus besoin de rendre la monnaie !", name: "Aissatou K.", role: "Epicerie, Cotonou", initials: "AK", color: "from-emerald-500 to-emerald-600" },
-  { stars: 5, text: "Le lien WhatsApp c'est revolutionnaire. Je peux encaisser mes clients meme quand ils ne sont pas la !", name: "Marc B.", role: "Coiffeur, Porto-Novo", initials: "MB", color: "from-blue-500 to-blue-600" },
-  { stars: 4, text: "Simple a utiliser, meme mes clients ages arrivent a payer sans aide. Je recommande a tous.", name: "Fatoumata D.", role: "Restauratrice, Abomey-Calavi", initials: "FD", color: "from-rose-500 to-rose-600" },
-  { stars: 5, text: "Le tableau de bord me permet de voir exactement ce que j'ai gagne chaque jour. Tres utile pour ma gestion.", name: "Sekou K.", role: "Pharmacie, Parakou", initials: "SK", color: "from-amber-500 to-amber-600" },
+  { stars: 5, text: "Depuis que j'utilise Paycom, mes clients paient en quelques secondes. Plus besoin de rendre la monnaie !", name: "Aissatou K.", role: "Epicerie, Cotonou", initials: "AK", color: "from-emerald-500 to-emerald-600" },
+  { stars: 5, text: "Le lien WhatsApp c'est revolutionnaire. Je peux encaisser mes clients même quand ils ne sont pas là !", name: "Marc B.", role: "Coiffeur, Porto-Novo", initials: "MB", color: "from-blue-500 to-blue-600" },
+  { stars: 4, text: "Simple à utiliser, même mes clients âgés arrivent à payer sans aide. Je le recommande à tous.", name: "Fatoumata D.", role: "Restauratrice, Abomey-Calavi", initials: "FD", color: "from-rose-500 to-rose-600" },
+  { stars: 5, text: "Grâce au tableau de bord, je vois précisément mes revenus au quotidien. Très utile pour ma gestion.", name: "Sekou K.", role: "Pharmacie, Parakou", initials: "SK", color: "from-amber-500 to-amber-600" },
 ];
 
 const featuresLoop = [...features, ...features];
@@ -116,11 +116,11 @@ export default function HomePage() {
             <span className="bg-linear-to-r from-emerald-400 via-emerald-300 to-blue-400 bg-clip-text text-transparent">
               partout
             </span>
-            , par tous vos clients
+            , auprès de tous vos clients
           </h1>
 
           <p className="text-base sm:text-lg text-gray-400 max-w-lg mx-auto mb-10 leading-relaxed">
-            QR code, lien de paiement ou Push USSD : peu importe le telephone du client, vous recevez votre argent. Concu pour les petits commerces.
+            QR code, lien de paiement ou Push USSD : peu importe le telephone du client, vous recevez votre argent. Conçu pour les petits commerces.
           </p>
 
           <div className="flex justify-center gap-4 flex-wrap">
@@ -128,7 +128,7 @@ export default function HomePage() {
               onClick={() => navigate("/register")}
               className="group inline-flex items-center gap-2 px-7 py-4 rounded-2xl text-sm font-bold bg-linear-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5"
             >
-              Creer mon compte gratuit
+              Creer mon compte
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
@@ -163,7 +163,7 @@ export default function HomePage() {
           {[
             { num: "+2 000", label: "Marchands inscrits", icon: Users, color: "text-emerald-400" },
             { num: "3 min", label: "Duree de validite QR", icon: Clock, color: "text-blue-400" },
-            { num: "5 reseaux", label: "MTN, Moov, Celtiis & +", icon: Globe, color: "text-amber-400" },
+            { num: "3 reseaux", label: "MTN, Moov, Celtiis", icon: Globe, color: "text-amber-400" },
           ].map((s, i) => (
             <div key={i} className={`py-8 text-center group ${i < 2 ? "border-r border-gray-800/50" : ""}`}>
               <div className="flex justify-center mb-3">
@@ -219,15 +219,15 @@ export default function HomePage() {
         <div className="relative max-w-4xl mx-auto px-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold mb-3 mx-auto w-fit">
             <ChevronRight className="w-3.5 h-3.5" />
-            Comment ca marche
+            Comment ça marche
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-center text-white mb-14">
-            3 etapes, <span className="bg-linear-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">c'est tout</span>
+            3 étapes, <span className="bg-linear-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">c'est tout</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-8 items-end">
             {[
               { step: "01", title: "Creez votre compte", desc: "Inscription gratuite en 2 minutes. Aucun document complexe necessaire.", icon: Users, color: "from-emerald-500 to-emerald-600", offset: false },
-              { step: "02", title: "Generez un QR ou lien", desc: "Depuis votre tableau de bord, creez un moyen de paiement en un clic.", icon: QrCode, color: "from-blue-500 to-blue-600", offset: true },
+              { step: "02", title: "Generez un QR, lien ou Push", desc: "Depuis votre tableau de bord, creez un moyen de paiement en un clic.", icon: QrCode, color: "from-blue-500 to-blue-600", offset: true },
               { step: "03", title: "Encaissez instantanement", desc: "Le client paie, vous recevez la confirmation et l'argent en temps reel.", icon: Zap, color: "from-amber-500 to-amber-600", offset: false },
             ].map((item) => (
               <div key={item.step} className={`relative group ${item.offset ? "md:-translate-y-6" : ""}`}>
@@ -297,10 +297,10 @@ export default function HomePage() {
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-6 mx-auto w-fit">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            Rejoignez 2 000+ marchands
+            Rejoignez +2000 marchands
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-4 leading-tight">
-            Pret a moderniser{" "}
+            Prêt à moderniser{" "}
             <span className="bg-linear-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
               votre commerce
             </span>
@@ -313,7 +313,7 @@ export default function HomePage() {
             onClick={() => navigate("/register")}
             className="group inline-flex items-center gap-2 bg-white text-emerald-700 font-bold px-8 py-4 rounded-2xl text-sm hover:bg-emerald-50 shadow-xl shadow-white/10 transition-all duration-300 hover:-translate-y-0.5"
           >
-            Creer mon compte gratuit
+            Creer mon compte
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-gray-500">

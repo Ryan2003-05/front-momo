@@ -2,6 +2,7 @@
 import MerchantLayout from "../components/MerchantLayout";
 import Toast from "../components/Toast";
 import api from "../api";
+import { formatMobileMoneyNumber, operatorBadgeClass as getOperatorBadgeClass } from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,12 +41,6 @@ interface PaginatedTransactions {
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-
-const operatorBadgeClass: Record<string, string> = {
-  MTN:    "bg-amber-100 text-amber-800",
-  Moov:   "bg-blue-100 text-blue-800",
-  Celtiis: "bg-purple-100 text-purple-800",
-};
 
 const statusBadgeClass: Record<TxDisplayStatus, string> = {
   SUCCESS:    "bg-green-100 text-green-700",
@@ -327,12 +322,12 @@ export default function HistoriquePage() {
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${operatorBadgeClass[nomOp] ?? "bg-gray-100 text-gray-700"}`}>
+                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${getOperatorBadgeClass(nomOp)}`}>
                           {nomOp}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-600">{tx.session_paiement.type_paiement}</td>
-                      <td className="px-4 py-4 text-sm text-gray-600">{tx.numero_client}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{formatMobileMoneyNumber(tx.numero_client)}</td>
                       <td className="px-4 py-4 text-sm text-gray-600">{date}<br />{time}</td>
                       <td className="px-4 py-4 text-right font-semibold text-gray-900">
                         +{Number(tx.session_paiement.montant).toLocaleString("fr-FR")} F
@@ -397,7 +392,7 @@ export default function HistoriquePage() {
                 { label: "Référence",  value: selectedTx.reference_gateway, mono: true },
                 { label: "Opérateur", value: nomOp },
                 { label: "Type",      value: selectedTx.session_paiement.type_paiement },
-                { label: "Client",    value: selectedTx.numero_client },
+                { label: "Client",    value: formatMobileMoneyNumber(selectedTx.numero_client) },
                 { label: "Date",      value: `${date} · ${time}` },
               ].map((row) => (
                 <div key={row.label} className="flex justify-between border-b border-gray-100 pb-2">

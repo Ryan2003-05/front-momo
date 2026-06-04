@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import MerchantLayout from "../components/MerchantLayout";
 import Toast from "../components/Toast";
 import api from "../api";
+import { formatMobileMoneyNumber, operatorHex } from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -10,7 +11,6 @@ type TxStatus = "SUCCESS" | "FAILED" | "EN_ATTENTE";
 type TxDisplayStatus = TxStatus | "ANNULEE";
 type Periode  = "jour" | "semaine" | "mois";
 
-const opColors: Record<string, string> = { MTN: "#f59e0b", Moov: "#2563eb", Celtiis: "#7c3aed" };
 const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
 const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
 
@@ -155,7 +155,7 @@ export default function DashboardPage() {
     const pct   = totalOp > 0 ? (val.count / totalOp) * 100 : 0;
     const start = cumul;
     cumul += pct;
-    return { nom, pct: Math.round(pct), start, color: opColors[nom] ?? "#94a3b8" };
+    return { nom, pct: Math.round(pct), start, color: operatorHex(nom) };
   });
 
   const donutGradient = donutSegments.length > 0
@@ -305,7 +305,7 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold">Paiement {tx.operateur.nom}</p>
                     <p className="truncate text-[11px] text-gray-500">
-                      {tx.numero_client} · {timeAgo(tx.created_at)} · {tx.session_paiement.type_paiement}
+                      {formatMobileMoneyNumber(tx.numero_client)} · {timeAgo(tx.created_at)} · {tx.session_paiement.type_paiement}
                     </p>
                   </div>
                   <div className="text-right">

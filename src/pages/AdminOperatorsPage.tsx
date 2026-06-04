@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Toast from "../components/Toast";
+import { OPERATOR_CODES, operatorHex } from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,22 +25,10 @@ interface AdminUser {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const opColors: Record<string, string> = {
-  MTN:    "#f59e0b",
-  Moov:   "#2563eb",
-  Celtiis: "#7c3aed",
-};
-
-const opCodes: Record<string, string> = {
-  MTN:    "MTN",
-  Moov:   "MOV",
-  Celtiis: "CEL",
-};
-
 const chartData = [
   { name: "MTN MoMo",   color: "#f59e0b", values: [680, 720, 650, 800, 750, 850, 724] },
-  { name: "Moov Money", color: "#2563eb", values: [380, 420, 350, 450, 400, 480, 398] },
-  { name: "Celtiis",     color: "#7c3aed", values: [180, 190, 160, 210, 180, 200, 162], dash: "4 3" },
+  { name: "Moov Money", color: "#0F6AB3", values: [380, 420, 350, 450, 400, 480, 398] },
+  { name: "Celtiis",     color: "#1E3C74", values: [180, 190, 160, 210, 180, 200, 162], dash: "4 3" },
 ];
 
 const incidentHistory = [
@@ -275,8 +264,8 @@ export default function AdminOperatorsPage() {
           ) : (
             <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {operators.map((op) => {
-                const color     = opColors[op.nom] ?? "#6b7280";
-                const code      = opCodes[op.nom]  ?? op.nom.slice(0, 3).toUpperCase();
+                const color     = operatorHex(op.nom);
+                const code      = OPERATOR_CODES[op.nom]  ?? op.nom.slice(0, 3).toUpperCase();
                 const isLoading = actionLoading === op.id;
 
                 return (
@@ -403,7 +392,7 @@ export default function AdminOperatorsPage() {
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2 text-[12px]">
                           <div className="flex h-6 w-6 items-center justify-center rounded-md text-[9px] font-semibold text-white"
-                            style={{ backgroundColor: item.code === "MTN" ? "#f59e0b" : item.code === "MOV" ? "#2563eb" : "#7c3aed" }}>
+                            style={{ backgroundColor: item.code === "MTN" ? "#f59e0b" : item.code === "MOV" ? "#0F6AB3" : "#1E3C74" }}>
                             {item.code}
                           </div>
                           {item.name}

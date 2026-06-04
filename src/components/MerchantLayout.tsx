@@ -2,6 +2,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import api from "../api";
 import Toast from "./Toast";
+import { OPERATOR_LABELS, formatMobileMoneyNumber, operatorBadgeClass } from "../utils/mobileMoney";
 
 // Types 
 
@@ -105,18 +106,6 @@ const navItems = [
 function getInitials(nom: string, prenom: string): string {
   return `${prenom.charAt(0)}${nom.charAt(0)}`.toUpperCase();
 }
-
-const opColors: Record<string, string> = {
-  MTN:    "bg-amber-100 text-amber-800",
-  Moov:   "bg-blue-100 text-blue-800",
-  Celtiis: "bg-purple-100 text-purple-800",
-};
-
-const opLabels: Record<string, string> = {
-  MTN:    "MTN MoMo",
-  Moov:   "Moov Money",
-  Celtiis: "Celtiis",
-};
 
 //  Composant 
 
@@ -264,7 +253,7 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
             </div>
             <div className="min-w-0">
               <p className="truncate text-xs font-medium text-white">{commercant?.nom_entreprise ?? "..."}</p>
-              <p className="text-[11px] text-blue-200">{commercant?.telephone ?? ""}</p>
+              <p className="text-[11px] text-blue-200">{formatMobileMoneyNumber(commercant?.telephone ?? "")}</p>
             </div>
           </div>
           <button
@@ -359,9 +348,9 @@ export default function MerchantLayout({ children }: MerchantLayoutProps) {
               {comptes.length > 0 ? comptes.map((c) => (
                 <span
                   key={c.id}
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${opColors[c.operateur.nom] ?? "bg-gray-100 text-gray-700"}`}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${operatorBadgeClass(c.operateur.nom)}`}
                 >
-                  {opLabels[c.operateur.nom] ?? c.operateur.nom}
+                  {OPERATOR_LABELS[c.operateur.nom] ?? c.operateur.nom}
                 </span>
               )) : (
                 <span className="text-[10px] text-gray-400">

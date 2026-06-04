@@ -2,6 +2,14 @@
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Toast from "../components/Toast";
+import {
+  MOBILE_MONEY_PLACEHOLDER,
+  OPERATOR_CODES,
+  OPERATOR_LABELS,
+  formatMobileMoneyNumber,
+  normalizeMobileMoneyNumber,
+  operatorHex,
+} from "../utils/mobileMoney";
 
 interface OperateurState {
   active: boolean;
@@ -30,9 +38,9 @@ interface Operateurs {
 type FormErrors = Partial<Record<keyof FormData | "operateurs" | "global", string>>;
 
 const OPERATEURS_CONFIG = [
-  { key: "mtn",     label: "MTN MoMo",   short: "MTN", color: "#f59e0b", placeholder: "+229 97 00 00 00", nom: "MTN"    },
-  { key: "moov",    label: "Moov Money", short: "MOV", color: "#2563eb", placeholder: "+229 96 00 00 00", nom: "Moov"   },
-  { key: "celtiis", label: "Celtiis",    short: "CEL", color: "#7c3aed", placeholder: "+229 95 00 00 00", nom: "Celtiis" },
+  { key: "mtn",     nom: "MTN" },
+  { key: "moov",    nom: "Moov" },
+  { key: "celtiis", nom: "Celtiis" },
 ] as const;
 
 type OperateurKey = "mtn" | "moov" | "celtiis";
@@ -67,7 +75,8 @@ export default function RegisterPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const value = e.target.name === "phone" ? formatMobileMoneyNumber(e.target.value) : e.target.value;
+    setForm({ ...form, [e.target.name]: value });
   };
 
   const toggleOperateur = (key: OperateurKey) => {
@@ -77,7 +86,7 @@ export default function RegisterPage() {
   };
 
   const handleNumeroChange = (key: OperateurKey, value: string) => {
-    setOperateurs({ ...operateurs, [key]: { ...operateurs[key], numero: value } });
+    setOperateurs({ ...operateurs, [key]: { ...operateurs[key], numero: formatMobileMoneyNumber(value) } });
   };
 
   const validate = (): FormErrors => {
@@ -107,14 +116,14 @@ export default function RegisterPage() {
 
     const comptes = OPERATEURS_CONFIG
       .filter((op) => operateurs[op.key].active)
-      .map((op) => ({ operateur_nom: op.nom, numero: operateurs[op.key].numero }));
+      .map((op) => ({ operateur_nom: op.nom, numero: normalizeMobileMoneyNumber(operateurs[op.key].numero) }));
 
     try {
       await api.post("/auth/register", {
         email: form.email, mot_de_passe: form.password,
         mot_de_passe_confirmation: form.confirmPassword,
         nom: form.lastName, prenom: form.firstName,
-        nom_entreprise: form.businessName, telephone: form.phone,
+        nom_entreprise: form.businessName, telephone: normalizeMobileMoneyNumber(form.phone),
         type_commerce: form.businessType, ville: form.city,
         ifu: form.ifu || null, comptes,
       });
@@ -196,7 +205,7 @@ export default function RegisterPage() {
               value={form.firstName} onChange={handleChange} error={errors.firstName} />
             <Input name="lastName" label="Nom" placeholder="Ex : Aïssatou"
               value={form.lastName} onChange={handleChange} error={errors.lastName} />
-            <Input name="phone" label="Téléphone" placeholder="+229 97 00 00 00"
+            <Input name="phone" label="Téléphone" placeholder={MOBILE_MONEY_PLACEHOLDER}
               value={form.phone} onChange={handleChange} error={errors.phone} />
             <Input name="email" label="Email" placeholder="monmail@gmail.com"
               value={form.email} onChange={handleChange} error={errors.email} />
@@ -235,8 +244,8 @@ export default function RegisterPage() {
                         )}
                       </div>
                       <div className="w-8 h-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{ background: op.color }}>{op.short}</div>
-                      <span className="text-sm font-semibold text-gray-800">{op.label}</span>
+                        style={{ background: operatorHex(op.nom) }}>{OPERATOR_CODES[op.nom]}</div>
+                      <span className="text-sm font-semibold text-gray-800">{OPERATOR_LABELS[op.nom]}</span>
                       {!state.active && (
                         <span className="ml-auto text-xs text-gray-400 border border-gray-200 rounded-full px-2 py-0.5">optionnel</span>
                       )}
@@ -248,9 +257,9 @@ export default function RegisterPage() {
                       <div className="px-4 py-3 border-t border-gray-100">
                         <input type="tel" value={state.numero}
                           onChange={(e) => handleNumeroChange(op.key, e.target.value)}
-                          placeholder={op.placeholder}
+                          placeholder={MOBILE_MONEY_PLACEHOLDER}
                           className="w-full h-9 border border-gray-300 rounded-md px-3 text-sm outline-none placeholder:text-gray-300 focus:border-green-500 transition-colors" />
-                        <p className="text-xs text-gray-400 mt-1">Numéro enregistré sur votre compte {op.label}</p>
+                        <p className="text-xs text-gray-400 mt-1">Numéro enregistré sur votre compte {OPERATOR_LABELS[op.nom]}</p>
                       </div>
                     )}
                   </div>

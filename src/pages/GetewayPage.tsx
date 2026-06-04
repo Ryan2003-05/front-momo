@@ -4,6 +4,15 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import Toast from "../components/Toast";
 import { API_URL } from "../config";
+import {
+  MOBILE_MONEY_PLACEHOLDER,
+  OPERATOR_LABELS,
+  detectMobileMoneyOperator,
+  formatMobileMoneyNumber,
+  normalizeMobileMoneyDigits,
+  operatorBadgeClass,
+  operatorLogoClass,
+} from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,42 +36,12 @@ type SessionData = {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const opColors: Record<string, string> = {
-  MTN:    "bg-amber-500",
-  Moov:   "bg-blue-600",
-  Celtiis: "bg-purple-600",
-};
-
-const opBadge: Record<string, string> = {
-  MTN:    "bg-amber-100 text-amber-800",
-  Moov:   "bg-blue-100 text-blue-800",
-  Celtiis: "bg-purple-100 text-purple-800",
-};
-
-const opLabels: Record<string, string> = {
-  MTN:    "MTN MoMo",
-  Moov:   "Moov Money",
-  Celtiis: "Celtiis",
-};
-
-const MTN_PREFIXES    = [42,46,50,51,52,53,54,56,57,59,61,62,66,67,69,90,91,96,97];
-const MOOV_PREFIXES   = [55,58,60,63,64,65,68,94,95,98];
-const Celtiis_PREFIXES = [40,41,43,44,47];
 const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
 const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
 
 function notifyTransactionsUpdated() {
   window.dispatchEvent(new Event(TRANSACTIONS_UPDATED_EVENT));
   localStorage.setItem(TRANSACTIONS_UPDATED_KEY, Date.now().toString());
-}
-
-function detecterOperateur(numero: string): string | null {
-  const clean   = numero.replace(/[\s+-]/g, "").replace(/^(229|01229|01)/, "");
-  const prefixe = parseInt(clean.substring(0, 2), 10);
-  if (MTN_PREFIXES.includes(prefixe))    return "MTN";
-  if (MOOV_PREFIXES.includes(prefixe))   return "Moov";
-  if (Celtiis_PREFIXES.includes(prefixe)) return "Celtiis";
-  return null;
 }
 
 function formatTimer(seconds: number) {
@@ -143,9 +122,9 @@ export default function GatewayPage() {
     return () => { if (timerRef.current) window.clearInterval(timerRef.current); };
   }, [status, session]);
 
-  const detectedOperator = useMemo(() => detecterOperateur(phone), [phone]);
+  const detectedOperator = useMemo(() => detectMobileMoneyOperator(phone), [phone]);
   const timerDisplay     = useMemo(() => formatTimer(remainingSeconds), [remainingSeconds]);
-  const cleanPhone       = phone.replace(/\D/g, "").replace(/^(229|01229|01)/, "");
+  const cleanPhone       = normalizeMobileMoneyDigits(phone);
   const canConfirm       = cleanPhone.length >= 8 && pin.length >= 4 && detectedOperator !== null
     && session?.operateurs_acceptes.includes(detectedOperator);
 
@@ -247,9 +226,9 @@ export default function GatewayPage() {
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Opérateurs acceptés</p>
                   <div className="flex gap-2 flex-wrap">
                     {(session?.operateurs_acceptes ?? []).map((nom) => (
-                      <span key={nom} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${opBadge[nom] ?? "bg-gray-100 text-gray-700"}`}>
-                        <span className={`h-2 w-2 rounded-full ${opColors[nom] ?? "bg-gray-400"}`} />
-                        {opLabels[nom] ?? nom}
+                      <span key={nom} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${operatorBadgeClass(nom)}`}>
+                        <span className={`h-2 w-2 rounded-full ${operatorLogoClass(nom)}`} />
+                        {OPERATOR_LABELS[nom] ?? nom}
                       </span>
                     ))}
                   </div>
@@ -263,8 +242,8 @@ export default function GatewayPage() {
                   <div className="relative">
                     <Smartphone className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <input type="tel" value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="01 96 00 00 00"
+                      onChange={(e) => setPhone(formatMobileMoneyNumber(e.target.value))}
+                      placeholder={MOBILE_MONEY_PLACEHOLDER}
                       autoComplete="off"
                       className="h-11 w-full rounded-md border border-gray-200 bg-white pr-4 pl-10 text-sm font-medium text-gray-900 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100" />
                   </div>
@@ -274,13 +253,13 @@ export default function GatewayPage() {
                 <div className="mb-5 min-h-9">
                   {detectedOperator ? (
                     session?.operateurs_acceptes.includes(detectedOperator) ? (
-                      <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${opBadge[detectedOperator]}`}>
-                        <span className={`h-2 w-2 rounded-full ${opColors[detectedOperator]}`} />
-                        Opérateur détecté : {opLabels[detectedOperator]}
+                      <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${operatorBadgeClass(detectedOperator)}`}>
+                        <span className={`h-2 w-2 rounded-full ${operatorLogoClass(detectedOperator)}`} />
+                        Opérateur détecté : {OPERATOR_LABELS[detectedOperator]}
                       </div>
                     ) : (
                       <div className="inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700">
-                        ✕ {opLabels[detectedOperator] ?? detectedOperator} non accepté par ce commerçant
+                        ✕ {OPERATOR_LABELS[detectedOperator] ?? detectedOperator} non accepté par ce commerçant
                       </div>
                     )
                   ) : (
@@ -394,11 +373,11 @@ export default function GatewayPage() {
             <div className="space-y-2">
               {operateursAcceptes.map((op) => (
                 <div key={op.nom} className="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-2.5">
-                  <span className={`flex h-7 w-10 shrink-0 items-center justify-center rounded text-[10px] font-semibold text-white ${opColors[op.nom] ?? "bg-gray-400"}`}>
+                  <span className={`flex h-7 w-10 shrink-0 items-center justify-center rounded text-[10px] font-semibold text-white ${operatorLogoClass(op.nom)}`}>
                     {op.nom.slice(0, 3).toUpperCase()}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-gray-900">{opLabels[op.nom] ?? op.nom}</p>
+                    <p className="text-xs font-semibold text-gray-900">{OPERATOR_LABELS[op.nom] ?? op.nom}</p>
                   </div>
                   <span className="h-2 w-2 rounded-full bg-green-600" />
                 </div>

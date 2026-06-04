@@ -2,6 +2,7 @@
 import axios from "axios";
 import Toast from "../components/Toast";
 import { API_URL } from "../config";
+import { formatMobileMoneyNumber } from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,10 +35,10 @@ function notifyTransactionsUpdated() {
   localStorage.setItem(TRANSACTIONS_UPDATED_KEY, Date.now().toString());
 }
 
-const opConfig: Record<string, { bg: string; text: string; code: string; label: string }> = {
-  MTN:    { bg: "#FFCC00", text: "#000", code: "MTN", label: "MTN MoMo" },
-  Moov:   { bg: "#0066CC", text: "#fff", code: "MOV", label: "Moov Money" },
-  Celtiis: { bg: "#6B21A8", text: "#fff", code: "CEL", label: "Celtiis Cash" },
+const opConfig: Record<string, { bgClass: string; textClass: string; dotClass: string; code: string; label: string }> = {
+  MTN:     { bgClass: "bg-[#FFCC00]", textClass: "text-black", dotClass: "bg-black", code: "MTN", label: "MTN MoMo" },
+  Moov:    { bgClass: "bg-linear-to-br from-[#0F6AB3] to-[#F97A1E]", textClass: "text-white", dotClass: "bg-[#F97A1E]", code: "MOV", label: "Moov Money" },
+  Celtiis: { bgClass: "bg-linear-to-br from-[#1E3C74] to-[#95C21F]", textClass: "text-white", dotClass: "bg-[#95C21F]", code: "CEL", label: "Celtiis" },
 };
 
 function formatMontant(v: string | number): string {
@@ -180,7 +181,7 @@ export default function PushClientPage() {
   }
 
   const op = push
-    ? (opConfig[push.operateur] ?? { bg: "#16a34a", text: "#fff", code: "PAY", label: "Mobile Money" })
+    ? (opConfig[push.operateur] ?? { bgClass: "bg-green-600", textClass: "text-white", dotClass: "bg-white", code: "PAY", label: "Mobile Money" })
     : null;
 
   return (
@@ -253,25 +254,25 @@ export default function PushClientPage() {
               {/* ── POPUP 1 ── */}
               {etape === "popup1" && push && op && (
                 <div className="pt-3">
-                  <div className="rounded-2xl overflow-hidden mb-4" style={{ background: op.bg }}>
+                  <div className={`rounded-2xl overflow-hidden mb-4 ${op.bgClass}`}>
                     <div className="px-4 py-4">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center">
-                          <span className="text-[11px] font-extrabold" style={{ color: op.text }}>{op.code}</span>
+                          <span className={`text-[11px] font-extrabold ${op.textClass}`}>{op.code}</span>
                         </div>
                         <div>
-                          <p className="font-extrabold text-sm" style={{ color: op.text }}>{op.label}</p>
-                          <p className="text-[10px] opacity-75" style={{ color: op.text }}>Demande de paiement</p>
+                          <p className={`font-extrabold text-sm ${op.textClass}`}>{op.label}</p>
+                          <p className={`text-[10px] opacity-75 ${op.textClass}`}>Demande de paiement</p>
                         </div>
                         <div className="ml-auto bg-white/20 px-2 py-0.5 rounded-full">
-                          <span className="text-[10px] font-bold" style={{ color: op.text }}>{formatTimer(timerSeconds)}</span>
+                          <span className={`text-[10px] font-bold ${op.textClass}`}>{formatTimer(timerSeconds)}</span>
                         </div>
                       </div>
                       <div className="bg-white/15 rounded-xl p-3 text-center">
-                        <p className="text-[10px] opacity-75 uppercase tracking-wide" style={{ color: op.text }}>
+                        <p className={`text-[10px] opacity-75 uppercase tracking-wide ${op.textClass}`}>
                           Vous allez effectuer un paiement de
                         </p>
-                        <p className="text-3xl font-extrabold mt-1" style={{ color: op.text }}>
+                        <p className={`text-3xl font-extrabold mt-1 ${op.textClass}`}>
                           {formatMontant(push.montant)}
                         </p>
                       </div>
@@ -282,7 +283,7 @@ export default function PushClientPage() {
                     {[
                       { label: "Marchand", value: push.commerce },
                       { label: "Motif",    value: push.libelle },
-                      { label: "Numéro",   value: push.numero },
+                      { label: "Numéro",   value: formatMobileMoneyNumber(push.numero) },
                       ...(push.reference ? [{ label: "Référence", value: push.reference }] : []),
                     ].map(({ label, value }) => (
                       <div key={label} className="flex justify-between items-center">
@@ -298,8 +299,7 @@ export default function PushClientPage() {
                       Annuler
                     </button>
                     <button onClick={() => setEtape("popup2")}
-                      className="py-3 rounded-2xl text-sm font-bold shadow-lg"
-                      style={{ background: op.bg, color: op.text }}>
+                      className={`py-3 rounded-2xl text-sm font-bold shadow-lg ${op.bgClass} ${op.textClass}`}>
                       Continuer
                     </button>
                   </div>
@@ -309,14 +309,14 @@ export default function PushClientPage() {
               {/* ── POPUP 2 ── */}
               {etape === "popup2" && push && op && (
                 <div className="pt-3">
-                  <div className="rounded-2xl overflow-hidden mb-4" style={{ background: op.bg }}>
+                  <div className={`rounded-2xl overflow-hidden mb-4 ${op.bgClass}`}>
                     <div className="px-4 py-3 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-white/25 flex items-center justify-center">
-                        <span className="text-[10px] font-extrabold" style={{ color: op.text }}>{op.code}</span>
+                        <span className={`text-[10px] font-extrabold ${op.textClass}`}>{op.code}</span>
                       </div>
-                      <p className="font-bold text-sm" style={{ color: op.text }}>{op.label}</p>
+                      <p className={`font-bold text-sm ${op.textClass}`}>{op.label}</p>
                       <div className="ml-auto bg-white/20 px-2 py-0.5 rounded-full">
-                        <span className="text-[10px] font-bold" style={{ color: op.text }}>{formatTimer(timerSeconds)}</span>
+                        <span className={`text-[10px] font-bold ${op.textClass}`}>{formatTimer(timerSeconds)}</span>
                       </div>
                     </div>
                   </div>
@@ -335,10 +335,9 @@ export default function PushClientPage() {
                       {[0, 1, 2, 3, 4, 5].map((i) => (
                         <div key={i}
                           className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${
-                            i < pin.length ? "border-transparent" : "border-gray-700 bg-gray-900"
-                          }`}
-                          style={i < pin.length ? { background: op.bg } : {}}>
-                          {i < pin.length && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
+                            i < pin.length ? `border-transparent ${op.bgClass}` : "border-gray-700 bg-gray-900"
+                          }`}>
+                          {i < pin.length && <span className={`w-2.5 h-2.5 rounded-full ${op.dotClass}`} />}
                         </div>
                       ))}
                     </div>
@@ -358,8 +357,9 @@ export default function PushClientPage() {
                       Retour
                     </button>
                     <button onClick={handleConfirmer} disabled={pin.length < 4 || loading}
-                      className="py-3 rounded-2xl text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-lg transition-all"
-                      style={{ background: pin.length >= 4 ? op.bg : "#374151", color: pin.length >= 4 ? op.text : "#9CA3AF" }}>
+                      className={`py-3 rounded-2xl text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-lg transition-all ${
+                        pin.length >= 4 ? `${op.bgClass} ${op.textClass}` : "bg-gray-700 text-gray-400"
+                      }`}>
                       {loading ? "..." : "Valider"}
                     </button>
                   </div>
