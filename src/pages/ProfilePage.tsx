@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import MerchantLayout from "../components/MerchantLayout";
 import { Pencil, Plus, Power, Save, X } from "lucide-react";
 import api from "../api";
@@ -59,6 +59,8 @@ type DashboardStats = {
   solde_total: string;
 };
 
+const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
+const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
 const operators = ["MTN", "Moov", "Celtiis"];
 
 function emptyAccountForm(operateurNom = ""): AccountForm {
@@ -118,6 +120,15 @@ export default function ProfilePage() {
     current: false, next: false, confirm: false,
   });
 
+  const refreshStats = useCallback(async () => {
+    try {
+      const dashRes = await api.get<DashboardStats>("/dashboard?periode=tout");
+      setStats(dashRes.data);
+    } catch {
+      // Le profil reste utilisable si le rafraichissement silencieux echoue.
+    }
+  }, []);
+
   // Charger le profil
   useEffect(() => {
     const fetchProfil = async () => {
@@ -164,6 +175,23 @@ export default function ProfilePage() {
     };
     fetchProfil();
   }, []);
+
+  useEffect(() => {
+    const refresh = () => refreshStats();
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === TRANSACTIONS_UPDATED_KEY) refresh();
+    };
+
+    window.addEventListener(TRANSACTIONS_UPDATED_EVENT, refresh);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", refresh);
+
+    return () => {
+      window.removeEventListener(TRANSACTIONS_UPDATED_EVENT, refresh);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [refreshStats]);
 
   // Toast
   useEffect(() => {
@@ -695,3 +723,4 @@ export default function ProfilePage() {
     </MerchantLayout>
   );
 }
+

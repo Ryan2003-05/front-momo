@@ -134,7 +134,11 @@ export default function HistoriquePage() {
 
   // Charger les transactions
   useEffect(() => {
-    fetchTransactions();
+    const timeoutId = window.setTimeout(() => {
+      fetchTransactions();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [fetchTransactions]);
 
   useEffect(() => {
