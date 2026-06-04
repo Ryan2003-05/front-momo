@@ -15,12 +15,12 @@ export const OPERATOR_COLORS = {
     gradientClass: "bg-linear-to-br from-[#0F6AB3] to-[#F97A1E]",
   },
   Celtiis: {
-    primary: "#1E3C74",
-    secondary: "#95C21F",
-    logoClass: "bg-[#1E3C74]",
-    accentClass: "bg-[#95C21F]",
-    badgeClass: "bg-[#95C21F]/15 text-[#1E3C74]",
-    gradientClass: "bg-linear-to-br from-[#1E3C74] to-[#95C21F]",
+    primary: "#10b981",
+    secondary: "#10b981",
+    logoClass: "bg-emerald-500",
+    accentClass: "bg-emerald-500",
+    badgeClass: "bg-emerald-100 text-emerald-700",
+    gradientClass: "bg-emerald-500",
   },
 } as const;
 

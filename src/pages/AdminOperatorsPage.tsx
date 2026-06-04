@@ -28,7 +28,7 @@ interface AdminUser {
 const chartData = [
   { name: "MTN MoMo",   color: "#f59e0b", values: [680, 720, 650, 800, 750, 850, 724] },
   { name: "Moov Money", color: "#0F6AB3", values: [380, 420, 350, 450, 400, 480, 398] },
-  { name: "Celtiis",     color: "#1E3C74", values: [180, 190, 160, 210, 180, 200, 162], dash: "4 3" },
+  { name: "Celtiis",     color: "#10b981", values: [180, 190, 160, 210, 180, 200, 162], dash: "4 3" },
 ];
 
 const incidentHistory = [
@@ -392,7 +392,7 @@ export default function AdminOperatorsPage() {
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2 text-[12px]">
                           <div className="flex h-6 w-6 items-center justify-center rounded-md text-[9px] font-semibold text-white"
-                            style={{ backgroundColor: item.code === "MTN" ? "#f59e0b" : item.code === "MOV" ? "#0F6AB3" : "#1E3C74" }}>
+                            style={{ backgroundColor: item.code === "MTN" ? "#f59e0b" : item.code === "MOV" ? "#0F6AB3" : "#10b981" }}>
                             {item.code}
                           </div>
                           {item.name}
