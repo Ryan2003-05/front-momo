@@ -67,18 +67,6 @@ interface AdminUser {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const opColors: Record<string, string> = {
-  MTN:    "bg-amber-500",
-  Moov:   "bg-blue-600",
-  Celtiis: "bg-purple-600",
-};
-
-const opCodes: Record<string, string> = {
-  MTN:    "MTN",
-  Moov:   "MOV",
-  Celtiis: "CEL",
-};
-
 function getTxStatusClass(status: TxStatus) {
   if (status === "SUCCESS")    return { icon: "bg-green-100 text-green-700",  badge: "bg-green-100 text-green-700",  label: "Succès" };
   if (status === "FAILED")     return { icon: "bg-red-100 text-red-700",      badge: "bg-red-100 text-red-700",      label: "Échec" };
@@ -86,7 +74,7 @@ function getTxStatusClass(status: TxStatus) {
 }
 
 function getOpCode(nom: string): string {
-  return opCodes[nom] ?? nom.slice(0, 3).toUpperCase();
+  return OPERATOR_CODES[nom] ?? nom.slice(0, 3).toUpperCase();
 }
 
 function timeAgo(dateStr: string): string {
@@ -318,7 +306,7 @@ export default function AdminDashboardPage() {
                 <div className="space-y-1.5">
                   {(data?.operateurs ?? []).map((op) => (
                     <div key={op.id} className="flex items-center gap-2.5 rounded-md bg-gray-50 px-2.5 py-2">
-                      <div className={`flex h-5 w-9 items-center justify-center rounded text-[9px] font-semibold text-white ${opColors[op.nom] ?? "bg-gray-400"}`}>
+                      <div className={`flex h-5 w-9 items-center justify-center rounded text-[9px] font-semibold text-white ${operatorLogoClass(op.nom)}`}>
                         {getOpCode(op.nom)}
                       </div>
                       <div className="flex-1">

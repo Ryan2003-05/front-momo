@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Toast from "../components/Toast";
+import { formatMobileMoneyNumber, operatorBadgeClass } from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,12 +61,6 @@ const statusClasses: Record<MerchantStatusType, string> = {
   actif:    "bg-green-100 text-green-700",
   attente:  "bg-yellow-100 text-yellow-700",
   suspendu: "bg-red-100 text-red-700",
-};
-
-const opColorClasses: Record<string, string> = {
-  MTN:    "bg-yellow-100 text-yellow-800",
-  Moov:   "bg-blue-100 text-blue-800",
-  Celtiis: "bg-purple-100 text-purple-800",
 };
 
 const avatarColors = [
@@ -411,7 +406,7 @@ export default function AdminMerchantsPage() {
                           <td className="px-3 py-2">
                             <div className="flex flex-wrap gap-1">
                               {ops.map((op) => (
-                                <span key={op} className={`inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${opColorClasses[op] ?? "bg-gray-100 text-gray-700"}`}>
+                                <span key={op} className={`inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${operatorBadgeClass(op)}`}>
                                   {op}
                                 </span>
                               ))}
@@ -494,7 +489,7 @@ export default function AdminMerchantsPage() {
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Informations</p>
               <div className="space-y-1 text-xs border-t border-gray-200 pt-2">
                 {[
-                  { label: "Téléphone",  value: selectedMerchant.telephone },
+                  { label: "Téléphone",  value: formatMobileMoneyNumber(selectedMerchant.telephone) },
                   { label: "Email",      value: selectedMerchant.utilisateur?.email ?? "—" },
                   { label: "Ville",      value: selectedMerchant.ville },
                   { label: "Type",       value: selectedMerchant.type_commerce },
@@ -513,7 +508,7 @@ export default function AdminMerchantsPage() {
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">Opérateurs</p>
               <div className="flex flex-wrap gap-2">
                 {ops.map((op) => (
-                  <span key={op} className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${opColorClasses[op] ?? "bg-gray-100 text-gray-700"}`}>
+                  <span key={op} className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${operatorBadgeClass(op)}`}>
                     {op}
                   </span>
                 ))}
