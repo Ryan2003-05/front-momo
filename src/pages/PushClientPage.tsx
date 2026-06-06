@@ -181,7 +181,7 @@ export default function PushClientPage() {
   }
 
   const op = push
-    ? (opConfig[push.operateur] ?? { bgClass: "bg-green-600", textClass: "text-white", dotClass: "bg-white", code: "PAY", label: "Mobile Money" })
+    ? (opConfig[push.payload?.operateur_detecte ?? push.operateur] ?? { bgClass: "bg-green-600", textClass: "text-white", dotClass: "bg-white", code: "PAY", label: "Mobile Money" })
     : null;
 
   return (

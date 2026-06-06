@@ -40,6 +40,17 @@ interface PaginatedTransactions {
   last_page: number;
 }
 
+interface PendingSession {
+  id: string;
+  montant: string;
+  libelle: string;
+  type_paiement: string;
+  created_at: string;
+  numero_client: string;
+  operateur: { nom: string };
+  statut: "EN_ATTENTE";
+}
+
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const statusBadgeClass: Record<TxDisplayStatus, string> = {
@@ -97,6 +108,7 @@ function getDisplayStatus(tx: Transaction): TxDisplayStatus {
 
 export default function HistoriquePage() {
   const [transactions, setTransactions]   = useState<Transaction[]>([]);
+  const [pendingSessions, setPendingSessions] = useState<PendingSession[]>([]);
   const [loading, setLoading]             = useState(true);
   const [searchTerm, setSearchTerm]       = useState("");
   const [filterOp, setFilterOp]           = useState("");
@@ -121,10 +133,11 @@ export default function HistoriquePage() {
       if (filterStatus !== "tous") params.append("statut", filterStatus);
       if (filterOp) params.append("operateur", filterOp);
 
-      const response = await api.get<{ transactions: PaginatedTransactions }>(
+      const response = await api.get<{ transactions: PaginatedTransactions; pending_sessions: PendingSession[] }>(
         `/transactions?${params.toString()}`
       );
       setTransactions(response.data.transactions.data);
+      setPendingSessions(response.data.pending_sessions ?? []);
     } catch {
       showToast("Impossible de charger les transactions.", "error");
     } finally {
@@ -174,6 +187,20 @@ export default function HistoriquePage() {
     });
   }, [transactions, searchTerm, filterType, filterOp, filterStatus]);
 
+  const filteredPending = useMemo(() => {
+    if (filterStatus !== "tous" && filterStatus !== "EN_ATTENTE") return [];
+    const q = searchTerm.toLowerCase();
+    return pendingSessions.filter((item) => {
+      const matchSearch = !q
+        || item.id.toLowerCase().includes(q)
+        || item.numero_client.includes(q)
+        || item.libelle.toLowerCase().includes(q);
+      const matchType = !filterType || item.type_paiement === filterType;
+      const matchOp = !filterOp || item.operateur.nom === filterOp;
+      return matchSearch && matchType && matchOp;
+    });
+  }, [pendingSessions, searchTerm, filterType, filterOp, filterStatus]);
+
   // Stats
   const stats = useMemo(() => {
     const succes = transactions.filter((t) => t.statut === "SUCCESS");
@@ -182,8 +209,8 @@ export default function HistoriquePage() {
     const volume = succes.reduce((s, t) => s + Number(t.session_paiement.montant), 0);
     const taux   = transactions.length > 0 ? Math.round((succes.length / transactions.length) * 100) : 0;
     const tauxE  = transactions.length > 0 ? Math.round((echecs.length / transactions.length) * 100) : 0;
-    return { total: transactions.length, volume, succes: succes.length, echec: echecs.length, annulees: annulees.length, taux, tauxE };
-  }, [transactions]);
+    return { total: transactions.length, volume, succes: succes.length, echec: echecs.length, annulees: annulees.length, attente: pendingSessions.length, taux, tauxE };
+  }, [transactions, pendingSessions]);
 
   // Télécharger le reçu PDF
   const handleDownloadPDF = async (tx: Transaction) => {
@@ -361,6 +388,57 @@ export default function HistoriquePage() {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Transactions en attente */}
+      <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-900">Transactions en attente</h3>
+          <span className="rounded-full bg-yellow-100 px-2 py-1 text-[10px] font-semibold text-yellow-700">
+            {filteredPending.length} en attente
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-auto border-separate border-spacing-0 text-left text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-3">Client</th>
+                <th className="px-4 py-3">Opérateur</th>
+                <th className="px-4 py-3">Libellé</th>
+                <th className="px-4 py-3">Heure initiée</th>
+                <th className="px-4 py-3">Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPending.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-7 text-center text-sm text-gray-400">
+                    Aucune transaction en attente
+                  </td>
+                </tr>
+              ) : filteredPending.map((item) => {
+                const { date, time } = formatDate(item.created_at);
+                return (
+                  <tr key={item.id} className="border-b border-gray-100">
+                    <td className="px-4 py-4 text-sm text-gray-700">{formatMobileMoneyNumber(item.numero_client)}</td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${getOperatorBadgeClass(item.operateur.nom)}`}>
+                        {item.operateur.nom}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 font-medium text-gray-900">{item.libelle}</td>
+                    <td className="px-4 py-4 text-sm text-gray-600">{date}<br />{time}</td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${statusBadgeClass.EN_ATTENTE}`}>
+                        {statusLabel.EN_ATTENTE}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Panneau détail */}

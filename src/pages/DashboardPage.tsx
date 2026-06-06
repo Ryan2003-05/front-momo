@@ -195,7 +195,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-semibold text-gray-900">Alerte rapide</p>
                 <p className="mt-2 text-sm text-gray-600">
-                  {data.stats.en_attente} transaction{data.stats.en_attente > 1 ? "s" : ""} en attente
+                  {data.stats.en_attente} transaction{data.stats.en_attente > 1 ? "s" : ""} en attente depuis plus de 10 min
                 </p>
               </div>
               <button onClick={() => navigate("/historique")}

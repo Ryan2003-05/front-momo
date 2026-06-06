@@ -6,6 +6,8 @@ import { gatewayUrl } from "../config";
 import {
   MOBILE_MONEY_PLACEHOLDER,
   OPERATOR_CODES,
+  OPERATOR_LABELS,
+  detectMobileMoneyOperator,
   formatMobileMoneyNumber,
   normalizeMobileMoneyNumber,
   operatorLogoClass,
@@ -380,7 +382,7 @@ export default function NewPaymentPage() {
 
   async function handleGenerate() {
     if (!selectedCompte) {
-      showToast("Veuillez sélectionner un compte opérateur.", "error");
+      showToast("Aucun compte opérateur actif n'est disponible.", "error");
       return;
     }
     if (total === 0) {
@@ -390,6 +392,17 @@ export default function NewPaymentPage() {
     if (currentType === "ussd" && !ussdNumber.trim()) {
       showToast("Veuillez saisir le numéro du client.", "error");
       return;
+    }
+    if (currentType === "ussd") {
+      const detected = detectMobileMoneyOperator(ussdNumber);
+      const accepted = detected && comptes.some((c) => c.operateur.nom === detected);
+      if (detected && !accepted) {
+        showToast(
+          "Ce commerçant ne peut pas encaisser un paiement venant de cet opérateur. Veillez choisir un autre opérateur pour effectuer votre paiement.",
+          "success"
+        );
+        return;
+      }
     }
 
     setLoading(true);
@@ -523,16 +536,14 @@ export default function NewPaymentPage() {
             ) : (
               <div className="flex flex-col gap-2">
                 {comptes.map((c) => (
-                  <button key={c.id} type="button" onClick={() => setSelectedCompte(c.id)}
-                    className={`flex items-center gap-2.5 rounded-md border px-3 py-2 text-left transition ${selectedCompte === c.id ? "border-green-600 bg-green-50" : "border-gray-200 bg-white hover:bg-gray-50"
-                      }`}>
+                  <div key={c.id}
+                    className="flex items-center gap-2.5 rounded-md border border-gray-200 bg-white px-3 py-2 text-left">
                     <span className={`flex h-5 w-8 shrink-0 items-center justify-center rounded text-[9px] font-medium text-white ${operatorLogoClass(c.operateur.nom)}`}>
                       {OPERATOR_CODES[c.operateur.nom] ?? c.operateur.nom.slice(0, 3)}
                     </span>
                     <span className="text-[13px] text-gray-900">{c.operateur.nom} MoMo</span>
                     <span className="ml-auto text-[11px] text-gray-400">{c.numero}</span>
-                    {selectedCompte === c.id && <span className="h-2 w-2 rounded-full bg-green-600" />}
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -842,8 +853,8 @@ export default function NewPaymentPage() {
               ))}
             </div>
             <div className="border-t border-gray-200 pt-1.5 text-[11px]">
-              <InfoRow label="Type" value={typeNames[currentType]} />
-              <InfoRow label="Opérateur" value={compteSelectionne ? `${compteSelectionne.operateur.nom} · ${compteSelectionne.numero}` : "—"} />
+            <InfoRow label="Type" value={typeNames[currentType]} />
+              <InfoRow label="Comptes" value={comptes.length ? comptes.map((c) => OPERATOR_LABELS[c.operateur.nom] ?? c.operateur.nom).join(", ") : "—"} />
               <InfoRow label="Total" value={formatMoney(total)} />
               <div className="flex items-center justify-between py-1">
                 <span className="text-gray-600">Expiration</span>

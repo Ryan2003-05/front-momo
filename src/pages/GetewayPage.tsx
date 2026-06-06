@@ -66,6 +66,7 @@ export default function GatewayPage() {
   const [toastType, setToastType]           = useState<"success" | "error" | "info">("error");
   const timerRef = useRef<number | null>(null);
   const finalStatusNotifiedRef = useRef(false);
+  const pendingAttemptKeyRef = useRef("");
 
   function showToast(message: string, type: "success" | "error" | "info" = "error") {
     setToastMessage(message);
@@ -128,6 +129,19 @@ export default function GatewayPage() {
   const canConfirm       = cleanPhone.length >= 8 && pin.length >= 4 && detectedOperator !== null
     && session?.operateurs_acceptes.includes(detectedOperator);
 
+  useEffect(() => {
+    if (!sessionId || !session || status !== "EN_ATTENTE" || cleanPhone.length < 8 || !detectedOperator) return;
+    if (session.operateurs_acceptes.includes(detectedOperator)) return;
+
+    const key = `${sessionId}:${cleanPhone}:${detectedOperator}`;
+    if (pendingAttemptKeyRef.current === key) return;
+    pendingAttemptKeyRef.current = key;
+
+    axios.post(`${API_URL}/gateway/${sessionId}/signaler-attente`, {
+      numero_client: phone,
+    }).catch(() => { /* l'alerte locale reste visible même si l'enregistrement échoue */ });
+  }, [cleanPhone, detectedOperator, phone, session, sessionId, status]);
+
   async function handleConfirm() {
     if (!canConfirm || !sessionId) return;
     if (timerRef.current) {
@@ -157,7 +171,11 @@ export default function GatewayPage() {
         setStatus("EXPIREE");
       } else {
         showToast(error.response?.data?.message || "Erreur lors du paiement.", "error");
-        setIsProcessing(false);
+        if (!error.response) {
+          showToast("En attente de connexion", "info");
+        } else {
+          setIsProcessing(false);
+        }
       }
     }
   }
@@ -258,8 +276,8 @@ export default function GatewayPage() {
                         Opérateur détecté : {OPERATOR_LABELS[detectedOperator]}
                       </div>
                     ) : (
-                      <div className="inline-flex items-center gap-2 rounded-full bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700">
-                        ✕ {OPERATOR_LABELS[detectedOperator] ?? detectedOperator} non accepté par ce commerçant
+                      <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold leading-5 text-green-700">
+                        Ce commerçant ne peut pas encaisser un paiement venant de cet opérateur. Veillez choisir un autre opérateur pour effectuer votre paiement.
                       </div>
                     )
                   ) : (
