@@ -50,6 +50,10 @@ function formatTimer(seconds: number) {
   return `${m}:${s}`;
 }
 
+function secondsUntil(expiresAt: string): number {
+  return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 1000));
+}
+
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 export default function GatewayPage() {
@@ -81,8 +85,9 @@ export default function GatewayPage() {
         const response = await axios.get(`${API_URL}/gateway/${sessionId}`);
         const data: SessionData = response.data;
         setSession(data);
-        setRemainingSeconds(Math.max(0, Math.floor(data.secondes_restantes)));
-        if (data.secondes_restantes <= 0) setStatus("EXPIREE");
+        const seconds = secondsUntil(data.expires_at);
+        setRemainingSeconds(seconds);
+        if (seconds <= 0) setStatus("EXPIREE");
       } catch (err) {
         const error = err as { response?: { data?: { statut?: string } } };
         const statut = error.response?.data?.statut;
@@ -111,14 +116,12 @@ export default function GatewayPage() {
   useEffect(() => {
     if (status !== "EN_ATTENTE" || !session) return;
     timerRef.current = window.setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) window.clearInterval(timerRef.current);
-          setStatus("EXPIREE");
-          return 0;
-        }
-        return prev - 1;
-      });
+      const seconds = secondsUntil(session.expires_at);
+      setRemainingSeconds(seconds);
+      if (seconds <= 0) {
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        setStatus("EXPIREE");
+      }
     }, 1000);
     return () => { if (timerRef.current) window.clearInterval(timerRef.current); };
   }, [status, session]);

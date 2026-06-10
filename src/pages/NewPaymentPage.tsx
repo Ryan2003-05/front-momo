@@ -264,14 +264,20 @@ export default function NewPaymentPage() {
     return `${m}:${s}`;
   }, [timerSeconds]);
 
-  function startTimer() {
+  function secondsUntil(expiresAt: string): number {
+    return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 1000));
+  }
+
+  function startTimer(expiresAt: string) {
     if (timerRef.current) window.clearInterval(timerRef.current);
-    setTimerSeconds(180);
+    setTimerSeconds(secondsUntil(expiresAt));
     timerRef.current = window.setInterval(() => {
-      setTimerSeconds((prev) => {
-        if (prev <= 1) { if (timerRef.current) window.clearInterval(timerRef.current); return 0; }
-        return prev - 1;
-      });
+      const seconds = secondsUntil(expiresAt);
+      setTimerSeconds(seconds);
+      if (seconds <= 0 && timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     }, 1000);
   }
 
@@ -431,7 +437,7 @@ export default function NewPaymentPage() {
 
       const response = await api.post<SessionResult>("/paiement/session", body);
       setResult(response.data);
-      startTimer();
+      startTimer(response.data.expires_at);
       setSessionId(response.data.session.id);
       startPollingSession(response.data.session.id);
 

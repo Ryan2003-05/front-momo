@@ -51,6 +51,10 @@ function formatTimer(seconds: number): string {
   return `${m}:${s}`;
 }
 
+function secondsUntil(expiresAt: string): number {
+  return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 1000));
+}
+
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 export default function PushClientPage() {
@@ -90,10 +94,7 @@ export default function PushClientPage() {
           setEtape("popup1");
           setPin("");
           setErrorMsg("");
-          const remaining = Math.max(0, Math.floor(
-            (new Date(data.push.expires_at).getTime() - Date.now()) / 1000
-          ));
-          setTimerSeconds(remaining);
+          setTimerSeconds(secondsUntil(data.push.expires_at));
         }
       } catch { /* ignore */ }
     };
@@ -108,19 +109,18 @@ export default function PushClientPage() {
     if (etape !== "popup1" && etape !== "popup2") return;
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = window.setInterval(() => {
-      setTimerSeconds((prev) => {
-        if (prev <= 1) {
-          if (timerRef.current) window.clearInterval(timerRef.current);
-          setEtape("expire");
-          setPush(null);
-          notifyTransactionsUpdated();
-          return 0;
-        }
-        return prev - 1;
-      });
+      if (!push) return;
+      const seconds = secondsUntil(push.expires_at);
+      setTimerSeconds(seconds);
+      if (seconds <= 0) {
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        setEtape("expire");
+        setPush(null);
+        notifyTransactionsUpdated();
+      }
     }, 1000);
     return () => { if (timerRef.current) window.clearInterval(timerRef.current); };
-  }, [etape]);
+  }, [etape, push]);
 
   function reset() {
     if (timerRef.current) window.clearInterval(timerRef.current);
