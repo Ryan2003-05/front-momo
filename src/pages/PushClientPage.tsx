@@ -37,8 +37,8 @@ function notifyTransactionsUpdated() {
 
 const opConfig: Record<string, { bgClass: string; textClass: string; dotClass: string; code: string; label: string }> = {
   MTN:     { bgClass: "bg-[#FFCC00]", textClass: "text-black", dotClass: "bg-black", code: "MTN", label: "MTN MoMo" },
-  Moov:    { bgClass: "bg-linear-to-br from-[#0F6AB3] to-[#F97A1E]", textClass: "text-white", dotClass: "bg-[#F97A1E]", code: "MOV", label: "Moov Money" },
-  Celtiis: { bgClass: "bg-linear-to-br from-[#1E3C74] to-[#95C21F]", textClass: "text-white", dotClass: "bg-[#95C21F]", code: "CEL", label: "Celtiis" },
+  Moov:    { bgClass: "bg-[#0F6AB3]", textClass: "text-white", dotClass: "bg-white", code: "MOV", label: "Moov Money" },
+  Celtiis: { bgClass: "bg-linear-to-br from-[#95C21F] to-[#1E3C74]", textClass: "text-white", dotClass: "bg-white", code: "CEL", label: "Celtiis" },
 };
 
 function formatMontant(v: string | number): string {
