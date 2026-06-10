@@ -2,7 +2,7 @@
 import MerchantLayout from "../components/MerchantLayout";
 import Toast from "../components/Toast";
 import api from "../api";
-import { formatMobileMoneyNumber, operatorBadgeClass as getOperatorBadgeClass } from "../utils/mobileMoney";
+import { detectMobileMoneyOperator, formatMobileMoneyNumber, operatorBadgeClass as getOperatorBadgeClass } from "../utils/mobileMoney";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -87,7 +87,11 @@ function formatDate(dateStr: string): { date: string; time: string } {
 }
 
 function getTransactionOperatorName(tx: Transaction): string {
-  return tx.operateur?.nom ?? tx.session_paiement.compte_operateur.operateur.nom;
+  return detectMobileMoneyOperator(tx.numero_client) ?? tx.operateur?.nom ?? tx.session_paiement.compte_operateur.operateur.nom;
+}
+
+function getPendingOperatorName(item: PendingSession): string {
+  return detectMobileMoneyOperator(item.numero_client) ?? item.operateur.nom;
 }
 
 const filterStatusOptions: FilterStatus[] = ["tous", "SUCCESS", "FAILED", "EN_ATTENTE"];
@@ -192,7 +196,7 @@ export default function HistoriquePage() {
         || item.numero_client.includes(q)
         || item.libelle.toLowerCase().includes(q);
       const matchType = !filterType || item.type_paiement === filterType;
-      const matchOp = !filterOp || item.operateur.nom === filterOp;
+      const matchOp = !filterOp || getPendingOperatorName(item) === filterOp;
       return matchSearch && matchType && matchOp;
     });
   }, [pendingSessions, searchTerm, filterType, filterOp, filterStatus]);
@@ -412,12 +416,13 @@ export default function HistoriquePage() {
                 </tr>
               ) : filteredPending.map((item) => {
                 const { date, time } = formatDate(item.created_at);
+                const nomOp = getPendingOperatorName(item);
                 return (
                   <tr key={item.id} className="border-b border-gray-100">
                     <td className="px-4 py-4 text-sm text-gray-700">{formatMobileMoneyNumber(item.numero_client)}</td>
                     <td className="px-4 py-4">
-                      <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${getOperatorBadgeClass(item.operateur.nom)}`}>
-                        {item.operateur.nom}
+                      <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${getOperatorBadgeClass(nomOp)}`}>
+                        {nomOp}
                       </span>
                     </td>
                     <td className="px-4 py-4 font-medium text-gray-900">{item.libelle}</td>
