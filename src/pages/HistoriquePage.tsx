@@ -7,8 +7,7 @@ import { formatMobileMoneyNumber, operatorBadgeClass as getOperatorBadgeClass } 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type TxStatus    = "SUCCESS" | "FAILED" | "EN_ATTENTE";
-type TxDisplayStatus = TxStatus | "ANNULEE";
-type FilterStatus = "tous" | TxDisplayStatus;
+type FilterStatus = "tous" | TxStatus;
 
 interface SessionPaiement {
   montant: string;
@@ -53,25 +52,22 @@ interface PendingSession {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const statusBadgeClass: Record<TxDisplayStatus, string> = {
+const statusBadgeClass: Record<TxStatus, string> = {
   SUCCESS:    "bg-green-100 text-green-700",
   FAILED:     "bg-red-100 text-red-700",
   EN_ATTENTE: "bg-yellow-100 text-yellow-700",
-  ANNULEE:    "bg-gray-100 text-gray-700",
 };
 
-const statusLabel: Record<TxDisplayStatus, string> = {
+const statusLabel: Record<TxStatus, string> = {
   SUCCESS:    "Succès",
   FAILED:     "Échec",
-  EN_ATTENTE: "En attente",
-  ANNULEE:    "Annulée",
+  EN_ATTENTE: "EN_ATTENTE",
 };
 
-const iconClass: Record<TxDisplayStatus, string> = {
+const iconClass: Record<TxStatus, string> = {
   SUCCESS:    "bg-green-100 text-green-700",
   FAILED:     "bg-red-100 text-red-700",
   EN_ATTENTE: "bg-yellow-100 text-yellow-700",
-  ANNULEE:    "bg-gray-100 text-gray-700",
 };
 
 function getOpCode(nom: string): string {
@@ -89,20 +85,15 @@ function formatDate(dateStr: string): { date: string; time: string } {
   };
 }
 
-const filterStatusOptions: FilterStatus[] = ["tous", "SUCCESS", "FAILED", "ANNULEE", "EN_ATTENTE"];
+const filterStatusOptions: FilterStatus[] = ["tous", "SUCCESS", "FAILED", "EN_ATTENTE"];
 const filterStatusLabels: Record<FilterStatus, string> = {
   tous:       "Tous",
   SUCCESS:    "Réussis",
   FAILED:     "Échoués",
-  ANNULEE:    "Annulées",
-  EN_ATTENTE: "En attente",
+  EN_ATTENTE: "EN_ATTENTE",
 };
 const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
 const TRANSACTIONS_UPDATED_KEY = "paypme:transactions-updated-at";
-
-function getDisplayStatus(tx: Transaction): TxDisplayStatus {
-  return tx.session_paiement.statut === "ANNULEE" ? "ANNULEE" : tx.statut;
-}
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
@@ -182,7 +173,7 @@ export default function HistoriquePage() {
         || tx.session_paiement.libelle.toLowerCase().includes(q);
       const matchType = !filterType || tx.session_paiement.type_paiement === filterType;
       const matchOp   = !filterOp   || nomOp === filterOp;
-      const matchStatus = filterStatus === "tous" || getDisplayStatus(tx) === filterStatus;
+      const matchStatus = filterStatus === "tous" || tx.statut === filterStatus;
       return matchSearch && matchType && matchOp && matchStatus;
     });
   }, [transactions, searchTerm, filterType, filterOp, filterStatus]);
@@ -205,11 +196,10 @@ export default function HistoriquePage() {
   const stats = useMemo(() => {
     const succes = transactions.filter((t) => t.statut === "SUCCESS");
     const echecs = transactions.filter((t) => t.statut === "FAILED");
-    const annulees = transactions.filter((t) => getDisplayStatus(t) === "ANNULEE");
     const volume = succes.reduce((s, t) => s + Number(t.session_paiement.montant), 0);
     const taux   = transactions.length > 0 ? Math.round((succes.length / transactions.length) * 100) : 0;
     const tauxE  = transactions.length > 0 ? Math.round((echecs.length / transactions.length) * 100) : 0;
-    return { total: transactions.length, volume, succes: succes.length, echec: echecs.length, annulees: annulees.length, attente: pendingSessions.length, taux, tauxE };
+    return { total: transactions.length, volume, succes: succes.length, echec: echecs.length, attente: pendingSessions.length, taux, tauxE };
   }, [transactions, pendingSessions]);
 
   // Télécharger le reçu PDF
@@ -337,13 +327,12 @@ export default function HistoriquePage() {
                 ) : filtered.map((tx) => {
                   const nomOp = tx.session_paiement.compte_operateur.operateur.nom;
                   const { date, time } = formatDate(tx.created_at);
-                  const displayStatus = getDisplayStatus(tx);
                   return (
                     <tr key={tx.id} className="cursor-pointer border-b border-gray-100 hover:bg-gray-50"
                       onClick={() => setSelectedTx(tx)}>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-semibold shrink-0 ${iconClass[displayStatus]}`}>
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-semibold shrink-0 ${iconClass[tx.statut]}`}>
                             {getOpCode(nomOp)}
                           </div>
                           <div className="min-w-0">
@@ -364,8 +353,8 @@ export default function HistoriquePage() {
                         +{Number(tx.session_paiement.montant).toLocaleString("fr-FR")} F
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${statusBadgeClass[displayStatus]}`}>
-                          {statusLabel[displayStatus]}
+                        <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-semibold ${statusBadgeClass[tx.statut]}`}>
+                          {statusLabel[tx.statut]}
                         </span>
                       </td>
                       <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
@@ -390,12 +379,12 @@ export default function HistoriquePage() {
         )}
       </div>
 
-      {/* Transactions en attente */}
+      {/* Transactions EN_ATTENTE */}
       <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">Transactions en attente</h3>
+          <h3 className="text-sm font-semibold text-gray-900">Transactions EN_ATTENTE</h3>
           <span className="rounded-full bg-yellow-100 px-2 py-1 text-[10px] font-semibold text-yellow-700">
-            {filteredPending.length} en attente
+            {filteredPending.length} EN_ATTENTE
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -413,7 +402,7 @@ export default function HistoriquePage() {
               {filteredPending.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-7 text-center text-sm text-gray-400">
-                    Aucune transaction en attente
+                    Aucune transaction EN_ATTENTE
                   </td>
                 </tr>
               ) : filteredPending.map((item) => {
@@ -443,7 +432,6 @@ export default function HistoriquePage() {
 
       {/* Panneau détail */}
       {selectedTx && (() => {
-        const displayStatus = getDisplayStatus(selectedTx);
         const nomOp = selectedTx.session_paiement.compte_operateur.operateur.nom;
         const { date, time } = formatDate(selectedTx.created_at);
         return (
@@ -456,16 +444,15 @@ export default function HistoriquePage() {
               </button>
             </div>
             <div className={`rounded-xl p-4 text-center text-2xl font-semibold mb-2 ${
-              displayStatus === "SUCCESS" ? "bg-green-50 text-green-700"
-              : displayStatus === "FAILED" ? "bg-red-50 text-red-700"
-              : displayStatus === "ANNULEE" ? "bg-gray-50 text-gray-700"
+              selectedTx.statut === "SUCCESS" ? "bg-green-50 text-green-700"
+              : selectedTx.statut === "FAILED" ? "bg-red-50 text-red-700"
               : "bg-yellow-50 text-yellow-700"
             }`}>
               +{Number(selectedTx.session_paiement.montant).toLocaleString("fr-FR")} F
             </div>
             <div className="text-center mb-4">
-              <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-semibold ${statusBadgeClass[displayStatus]}`}>
-                {statusLabel[displayStatus]}
+              <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-semibold ${statusBadgeClass[selectedTx.statut]}`}>
+                {statusLabel[selectedTx.statut]}
               </span>
             </div>
             <div className="space-y-3 text-sm">

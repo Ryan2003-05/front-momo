@@ -8,7 +8,6 @@ import { formatMobileMoneyNumber, operatorHex } from "../utils/mobileMoney";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type TxStatus = "SUCCESS" | "FAILED" | "EN_ATTENTE";
-type TxDisplayStatus = TxStatus | "ANNULEE";
 type Periode  = "jour" | "semaine" | "mois";
 
 const TRANSACTIONS_UPDATED_EVENT = "paypme:transactions-updated";
@@ -58,15 +57,10 @@ interface DashboardData {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getDisplayStatus(tx: Transaction): TxDisplayStatus {
-  return tx.session_paiement.statut === "ANNULEE" ? "ANNULEE" : tx.statut;
-}
-
-function getStatusClasses(status: TxDisplayStatus) {
+function getStatusClasses(status: TxStatus) {
   if (status === "SUCCESS") return { badge: "bg-green-100 text-green-700", icon: "bg-green-100 text-green-700", label: "Succès" };
   if (status === "FAILED")  return { badge: "bg-red-100 text-red-700",    icon: "bg-red-100 text-red-700",    label: "Échec" };
-  if (status === "ANNULEE") return { badge: "bg-gray-100 text-gray-700",   icon: "bg-gray-100 text-gray-700",   label: "Annulée" };
-  return { badge: "bg-yellow-100 text-yellow-700", icon: "bg-yellow-100 text-yellow-700", label: "En attente" };
+  return { badge: "bg-yellow-100 text-yellow-700", icon: "bg-yellow-100 text-yellow-700", label: "EN_ATTENTE" };
 }
 
 function getOperateurCode(nom: string): string {
@@ -195,7 +189,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-semibold text-gray-900">Alerte rapide</p>
                 <p className="mt-2 text-sm text-gray-600">
-                  {data.stats.en_attente} transaction{data.stats.en_attente > 1 ? "s" : ""} en attente depuis plus de 10 min
+                  {data.stats.en_attente} transaction{data.stats.en_attente > 1 ? "s" : ""} au statut EN_ATTENTE depuis plus de 10 min
                 </p>
               </div>
               <button onClick={() => navigate("/historique")}
@@ -296,7 +290,7 @@ export default function DashboardPage() {
             {(data?.recentes ?? []).length === 0 ? (
               <p className="text-xs text-gray-400 text-center py-4">Aucune transaction pour le moment</p>
             ) : (data?.recentes ?? []).map((tx) => {
-              const statusClass = getStatusClasses(getDisplayStatus(tx));
+              const statusClass = getStatusClasses(tx.statut);
               return (
                 <div key={tx.id} className="flex items-center gap-3 rounded-md bg-gray-50 px-3 py-2">
                   <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-semibold ${statusClass.icon}`}>
