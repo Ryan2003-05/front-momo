@@ -28,6 +28,7 @@ interface Transaction {
   statut: TxStatus;
   numero_client: string;
   created_at: string;
+  operateur?: { nom: string };
   session_paiement: SessionPaiement;
   recu: Recu | null;
 }
@@ -83,6 +84,10 @@ function formatDate(dateStr: string): { date: string; time: string } {
     date: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" }),
     time: d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
   };
+}
+
+function getTransactionOperatorName(tx: Transaction): string {
+  return tx.operateur?.nom ?? tx.session_paiement.compte_operateur.operateur.nom;
 }
 
 const filterStatusOptions: FilterStatus[] = ["tous", "SUCCESS", "FAILED", "EN_ATTENTE"];
@@ -166,7 +171,7 @@ export default function HistoriquePage() {
   const filtered = useMemo(() => {
     const q = searchTerm.toLowerCase();
     return transactions.filter((tx) => {
-      const nomOp = tx.session_paiement.compte_operateur.operateur.nom;
+      const nomOp = getTransactionOperatorName(tx);
       const matchSearch = !q
         || tx.reference_gateway.toLowerCase().includes(q)
         || tx.numero_client.includes(q)
@@ -325,7 +330,7 @@ export default function HistoriquePage() {
                     </td>
                   </tr>
                 ) : filtered.map((tx) => {
-                  const nomOp = tx.session_paiement.compte_operateur.operateur.nom;
+                  const nomOp = getTransactionOperatorName(tx);
                   const { date, time } = formatDate(tx.created_at);
                   return (
                     <tr key={tx.id} className="cursor-pointer border-b border-gray-100 hover:bg-gray-50"
@@ -432,7 +437,7 @@ export default function HistoriquePage() {
 
       {/* Panneau détail */}
       {selectedTx && (() => {
-        const nomOp = selectedTx.session_paiement.compte_operateur.operateur.nom;
+        const nomOp = getTransactionOperatorName(selectedTx);
         const { date, time } = formatDate(selectedTx.created_at);
         return (
           <div className="fixed right-0 top-0 z-50 h-full w-72 border-l border-gray-200 bg-white p-5 shadow-xl overflow-y-auto">
